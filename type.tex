@@ -1,0 +1,279 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[xetex]{hyperref}
+\usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
+\usepackage{xcolor}
+\usepackage{subfig}
+
+\hypersetup{colorlinks=true}
+
+\newcommand{\key}[1]{\textrm{\textbf{#1}}}
+\newcommand{\nbkey}[1]{\textrm{#1}}
+\newcommand{\record}[1]{\{\!\!\shortmid #1 \shortmid\!\!\}}
+\newcommand{\overld}[3]{\largecircle^{#1}_{#2}{#3}}
+\newcommand{\irecrd}[2]{\largesquare^{#1}{#2}}
+\newcommand{\tyvarsubst}[2]{#1\ \hspace{-0.2ex}:\hspace{1pt}=\ #2}
+\newcommand{\ovldrefine}[2]{#1\ \circ\hspace{-0.3ex}=\ #2}
+\newcommand{\irecextend}[2]{#1\ \smallsquare\hspace{-0.3ex}=\ #2}
+\newcommand{\lab}{\nbkey{lab}}
+\newcommand{\rigdvar}[1]{\ddot{#1}}
+\newcommand{\flexvar}[1]{\tilde#1}
+
+\newcommand{\comment}[1]{\textit{\color{olive}#1}}
+\newcommand{\ifclause}[1]{\textit{if}\hspace{1.5ex}#1}
+\newcommand{\whereclause}[1]{\textit{where}\hspace{1.5ex}#1}
+
+\newcommand{\unify}[3]{#1\,{\color{brown}{\simeq}}\,#2 \Rightarrow #3}
+\newcommand{\subst}[2]{[#1]\,#2}
+\newcommand{\braced}[1]{\{#1\}}
+
+\newcommand{\compose}[2]{#1 \circ #2}
+
+\newcommand{\tycon}{\mathbb{C}}
+\newcommand{\tyfun}{\zeta}
+\newcommand{\type}{\tau}
+\newcommand{\qualtype}[2]{#1 \triangleright #2}
+\newcommand{\scheme}{\delta}
+\newcommand{\substitute}{\rho}
+\newcommand{\equality}{\epsilon}
+\newcommand{\eqyes}{\equiv}
+\newcommand{\eqnot}{\nequiv}
+
+\newcommand{\wildcard}{{\color{gray}\scriptstyle\textbf{*}}}
+
+\begin{document}
+
+\title {A pure specification of MLton - Part 1. types}
+\author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
+\maketitle 
+
+\section{Type}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\type
+     & = & \alpha                                           & \\
+     & | & \tycon\ \overline\type              	            &\comment{constructor}\\
+     & | & \record{\overline{\lab:\type}}       		    &\comment{record type}\\
+     & | & \irecrd{\alpha}{[\overline{\lab:\type}]}         &\comment{incomplete record type}\\
+     & | & \overld{\alpha}{\type}{[\overline\scheme]}     	&\comment{overloading type}\\
+\alpha 
+     & = & \rigdvar{\alpha}^{\equality}                     &\comment{rigid type variable}\\
+     & | & \flexvar{\alpha}                                 &\comment{flexible type variable}\\     
+\\
+\qualtype{\type_1}{\type_2} & &                             &\comment{qualified type} \\
+                            & &                             &\comment{$\type_1$ are types that must admit equality} \\
+\\     
+\scheme 
+     & = & \forall \overline{\alpha}\,.\,\qualtype{\type_1}{\type_2}
+                                                            &\\
+\\
+\substitute
+     & = & \tyvarsubst{\alpha}{\type}                   	&\comment{substitute a tyvar}\\
+     & | & \irecextend{\alpha}{[\lab:\type]}	     	    &\comment{extend an incomplete record}\\
+     & | & \ovldrefine{\alpha}{[\scheme]}               	&\comment{refine a overloading type}\\
+\\     
+\equality
+	& = & \eqyes	& \comment{admitting equality}     \\
+	& | & \eqnot	& \comment{not admitting equality} \\
+\\
+\tyfun
+     & = & \Lambda{\overline{\alpha}}\,.\,{\qualtype{\type_1}{\type_2}} 
+                                                            &\comment{type function}\\
+\end{array}
+\]}
+
+\section {computing equality of types}
+\begin{minipage}{0.7\textwidth}
+\[\begin{array}{lcl}
+eq(\rigdvar{\alpha}^\equality) 						&=& \equality \\
+eq(\flexvar{\alpha})                                &=& \eqyes    \\
+eq(\tycon^\equality\ \overline\type) 				&=& \equality + eq(\overline\type) \\
+eq(\record{\overline{\lab:\type}})			        &=& eq(\overline\type)    \\
+eq(\irecrd{\alpha}{[\overline{\lab:\type}]})	    &=& eq(\overline\type)    \\
+eq(\overld{\alpha}{\type}{[\overline\scheme]})		&=& \eqnot                \\
+eq(\type_1\ \type_2\ \cdots\ \type_n)			    &=& \sum_i^n eq(\type_i)  \\
+\end{array}\]
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+$\begin{array}{ccccccccl}
+\eqyes &+& \eqyes &=& \eqyes \\
+\eqnot &+& \eqnot &=& \eqnot \\
+\eqyes &+& \eqnot &=& \eqnot &+& \eqyes &=& \eqnot \\
+\\
+\end{array}$
+\end{minipage}
+
+\section {Substitution}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\subst{\rho}{\type} \Rightarrow \type'$ }
+\end{flushright}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+\subst{\tyvarsubst{\alpha}{t_1}}{\alpha} & \Rightarrow & t_1	 \\
+\subst{\tyvarsubst{\alpha}{t_1}}{\tycon\ ts} & \Rightarrow & \tycon\ \subst{\tyvarsubst{\alpha}{t_1}}{ts} \\
+\subst{\tyvarsubst{\alpha}{t_1}}{\record{flds}}   & \Rightarrow & \record{\subst{\tyvarsubst{\alpha}{t_1}}{flds}}   \\
+\subst{\tyvarsubst{\alpha}{t_1}}{\overld{\alpha}{t_2}{s_2}} & \Rightarrow & t_1 
+    \quad\ifclause{(\unify{t_1}{t_2}{\_}) \wedge (\exists s \in s_2. t_1 \prec s)} \\
+\subst{\tyvarsubst{\alpha}{t_1}}{\overld{\beta}{t_2}{s_2}} & \Rightarrow & 
+    \overld{\beta}{\subst{\tyvarsubst{\alpha}{t_1}}{t_2}}{s_2}  \\    
+\subst{\tyvarsubst{\alpha}{t_1}}{\irecrd{\alpha}{flds}} & \Rightarrow & t_1 
+    \quad\ifclause{(t_1 = \record{flds'}) \wedge (flds \subseteq flds')} \\
+\subst{\tyvarsubst{\alpha}{t_1}}{\irecrd{\beta}{flds}} & \Rightarrow &  
+    \irecrd{\beta}{\subst{\tyvarsubst{\alpha}{t_1}}{flds}} \\
+ & & \\
+\subst{\ovldrefine{\alpha}{s_1}}{\alpha} & \Rightarrow & \perp	 \\
+\subst{\ovldrefine{\alpha}{s_1}}{\tycon\ ts} & \Rightarrow & \tycon\ \subst{\ovldrefine{\alpha}{s_1}}{ts} \\
+\subst{\ovldrefine{\alpha}{s_1}}{\record{flds}}   & \Rightarrow & \record{\subst{\ovldrefine{\alpha}{s_1}}{flds}}   \\
+\subst{\ovldrefine{\alpha}{s_1}}{\overld{\alpha}{t}{s_2}} & \Rightarrow & \overld{\alpha}{t}{s_1} 
+    \quad\ifclause{s_1 \subseteq s_2} \\
+\subst{\ovldrefine{\alpha}{s_1}}{\overld{\beta}{t}{s_2}} & \Rightarrow & 
+    \overld{\beta}{\subst{\ovldrefine{\alpha}{s_1}}{t}}{s_2} \\
+\subst{\ovldrefine{\alpha}{s_1}}{\irecrd{\beta}{flds}} & \Rightarrow & 
+    \irecrd{\beta}{\subst{\ovldrefine{\alpha}{s_1}}{flds_1}} \\ 
+ & & \\
+\subst{\irecextend{\alpha}{flds_1}}{\alpha}                 & \Rightarrow & \perp	 \\
+\subst{\irecextend{\alpha}{flds_1}}{\tycon\ ts}        & \Rightarrow & \tycon\ \subst{\irecextend{\alpha}{flds_1}}{ts} \\
+\subst{\irecextend{\alpha}{flds_1}}{\record{flds_2}}        & \Rightarrow & \record{\subst{\irecextend{\alpha}{flds_1}}{flds_2}}\\
+\subst{\irecextend{\alpha}{flds_1}}{\overld{\beta}{t}{s}}   & \Rightarrow & \overld{\beta}{\subst{\irecextend{\alpha}{flds_1}}{t}}{s} \\
+\subst{\irecextend{\alpha}{flds_1}}{\irecrd{\alpha}{flds_2}}& \Rightarrow & \irecrd{\alpha}{flds_1}\\
+\subst{\irecextend{\alpha}{flds_1}}{\irecrd{\beta}{flds_2}} & \Rightarrow & \irecrd{\alpha}{\subst{\irecextend{\alpha}{flds_1}}{flds_2}}\\
+ & & \\
+\subst{\rho}{\qualtype{\type_1}{\type_2}}                   & \Rightarrow & \qualtype{\subst{\rho}{\type_1}}{\subst{\rho}{\type_2}} \\
+\end{array}
+\]}
+
+\section {Generalization and Instantiation}
+{\renewcommand{\arraystretch}{1.2}\[\begin{array}{lcll}
+free(\alpha)                  & = & \braced{\alpha}                 &       \\
+free({\tycon\ ts})            & = & free(ts)                   		&       \\
+free(\record{flds})           & = & free(flds)                      &       \\
+free({\overld{\alpha}{t}{s}}) & = & \braced{\alpha} \cup free(t)    &       \\
+free({\irecrd{\alpha}{flds}}) & = & \braced{\alpha} \cup free(flds) &       \\
+free(\qualtype{\type_1}{\type_2})
+                              & = & free(\type_1) \cup free(\type_2)&       \\
+& & \\
+gen_E(\qualtype{\type_1}{\type_2})
+                              & = & \forall \overline{\alpha}. \qualtype{\type_1}{\type_2}
+                                                                    & \whereclause{\overline{\alpha} = free(\qualtype{\type_1}{\type_2}) - free(E)} \\
+inst(\forall \overline{\alpha}.\qualtype{\type_1}{\type_2})
+                              & = &[\rho]\qualtype{\type_1}{\type_2}& \whereclause{\rho = \braced{\alpha_i \mapsto \flexvar{\beta}_i \ |\ \flexvar{\beta}_i\ \textrm{is a fresh tyvar}}} \\
+\end{array}\]}
+
+\section{Instance relationship}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\type \prec \scheme$}
+\end{flushright}
+\[
+	\cfrac{ \unify{t}{inst(s)}{\_}}{t \prec s}
+\]
+
+\section{Unification}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\unify{\type_1}{\type_2}{\rho}$}
+\end{flushright}
+
+\[
+\begin{array}{ccc}
+ \multicolumn{3}{c}{\unify{\alpha}{\alpha}{\braced{}}} \\
+ &                                                                                                          \\
+ {\unify{\flexvar{\alpha}}{t}{\{\tyvarsubst{\flexvar\alpha}{t}\}}} & \quad & 
+ {\unify{t}{\flexvar{\alpha}}{\{\tyvarsubst{\flexvar\alpha}{t}\}}}                                          \\
+ &                                                                                                          \\
+ {\unify{\rigdvar{\alpha}}{t}{\perp}} & \quad & 
+ {\unify{t}{\rigdvar{\alpha}}{\perp}}                                                                       \\
+ &                                                                                                          \\
+ \unify{tycon_1\ ts}{\record{flds}}{\perp}     & \quad & \unify{\record{flds}}{tycon_1\ ts}{\perp}          \\      
+ &                                                                                                          \\
+ \unify{tycon_1\ ts}{\irecrd{\alpha}{flds}}{\perp} & \quad & \unify{\irecrd{\alpha}{flds}}{tycon_1\ ts}{\perp}  \\      
+ &                                                                                                          \\
+ \cfrac
+  {\unify{ts_1}{ts_2}{\rho} \quad tycon_1 = tycon_2}
+  {\unify{tycon_1\ ts_1}{tycon_2\ ts_2}{\rho}} & \quad &
+ \cfrac
+  {tycon_1 \ne tycon_2}
+  {\unify{tycon_1\ ts_1}{tycon_2\ ts_2}{\perp}}                                                             \\
+ &                                                                                                          \\
+ \multicolumn{3}{c}{ \cfrac
+  {\unify{flds_1}{flds_2}{\rho}}
+  {\unify{\record{flds_1}}{\record{flds_2}}{\rho}} }                                                        \\
+\end{array}
+\]
+\[
+\begin{array}{ccc}
+ \multicolumn{3}{c}{\cfrac
+  {\unify{\alpha_1}{\alpha_2}{\rho_1} \quad \unify{\subst{\rho_1}{t_1}}{\subst{\rho_2}{t_2}}{\rho_2} \quad
+   \exists s \in s_1 \cap s_2. (\subst{\rho_2}{t_1} \prec s)}
+  {\unify{\overld{\alpha}{t_1}{s_1}}{\overld{\alpha}{t_2}{s_2}}
+         {\rho_2 \circ \{\ovldrefine{\subst{\rho_1}{\alpha_1}}{s_1 \cap s_2}\} \circ \rho_1}}}              \\
+ & &                                                                                                        \\
+ \cfrac
+  {\unify{t_1}{t_2}{\rho} \quad \exists s \in s_1. (\subst{\rho}{t_1} \prec s)}
+  {\unify{\overld{\alpha}{t_1}{s_1}}{t_2}{\rho}} & \quad &
+ \cfrac
+  {\unify{t_1}{t_2}{\rho} \quad \exists s \in s_1. (\subst{\rho}{t_2} \prec s)}
+  {\unify{t_1}{\overld{\alpha_2}{t_2}{s_1}}{\rho}}                                                          \\
+ & &                                                                                                        \\
+ \multicolumn{3}{c}{\cfrac
+  {\unify{\alpha_1}{\alpha_2}{\rho_1} \quad
+   \unify{\subst{\rho_1}{flds_1}}{\subst{\rho_1}{flds_2}}{\rho_2} \quad
+   flds_1 \subseteq flds_2 \vee flds_2 \subseteq flds_1 }
+  {\unify{\irecrd{\alpha_1}{flds_1}}{\irecrd{\alpha_2}{flds_2}}
+         {\rho_2 \circ \{\irecextend{\subst{\rho_1}{\alpha_1}}{flds_1 \cup flds_2}\} \circ \rho_1}}}        \\
+ & &                                                                                                        \\
+ \multicolumn{3}{c}{\cfrac
+  {\unify{flds_1}{flds_2}{\rho} \quad flds_1 \subseteq flds_2}
+  {\unify{\irecrd{\alpha_1}{flds_1}}{\record{flds_2}}
+         {\compose{\braced{\tyvarsubst{\alpha_1}{[\rho]flds_2}}}{\rho}}}}                                   \\
+ & &                                \\
+ \multicolumn{3}{c}{\cfrac
+  {\unify{flds_1}{flds_2}{\rho} \quad flds_1 \subseteq flds_2}
+  {\unify{\record{flds_2}}{\irecrd{\alpha_1}{flds_1}}
+         {\compose{\braced{\tyvarsubst{\alpha_1}{[\rho]flds_2}}}{\rho}}}}                                   \\
+\end{array}
+\]
+
+\section{Syntax of types in ML}
+\newcommand{\q}     {\textrm{'}}
+\newcommand{\Env}   {\textrm{E}}
+\newcommand{\vdashT}{\ \vdash_{\textrm{\tiny T}}\  }
+\newcommand{\inTE}  {\ \in^{\textrm{\tiny TE}}\  }
+\[\begin{array}{lcll}
+type & = & \q a                                             & \\
+     & | & \q\q a                                           & \\
+     & | & tycon\ \overline{type}              	            &\comment{constructor}\\
+     & | & \braced{\overline{\lab:type}}       		        &\comment{record type}\\
+\end{array}\]
+
+\section{Elaboration of types}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \Env, type \vdashT \qualtype{\type_1}{\type_2}$ }
+\end{flushright}
+\[
+  \Env, \q a \vdashT \qualtype{}{\rigdvar{\alpha}^{\eqnot}}
+\]
+\[
+  \Env, \q\q a \vdashT \qualtype{\rigdvar{\alpha}^{\eqyes}}{\rigdvar{\alpha}^{\eqyes}}
+\]
+\[
+\cfrac
+ {tycon \mapsto (k, \tycon^\equality,\wildcard) \inTE \Env    \qquad
+  \Env,type_i\vdash \qualtype{p_i}{\type_i}}
+ {\Env, tycon\ \overline{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\tycon^\equality\ \overline{\type}}}
+\]
+\[
+\cfrac
+ {tycon \mapsto (k, \zeta,\wildcard) \inTE \Env    \qquad
+  \Env,type_i\vdash \qualtype{p_i}{\type_i}}
+ {\Env, tycon\ \overline{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\zeta\ \overline{\type}}}
+\]
+
+\[
+\cfrac
+ {\Env,type_i\vdash \qualtype{p_i}{\type_i}}
+ {\Env, \braced{\overline{\lab:type}} \vdashT \qualtype{(\sum_{i} p_i)}{\record{\overline{\lab:\type}}}}
+\]
+
+\end{document}

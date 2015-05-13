@@ -1,0 +1,163 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[xetex]{hyperref}
+\usepackage{mathtools,latexsym,amsfonts}
+\usepackage{xcolor}
+\newcommand{\keyword}[1]{\textrm{\textbf{#1}}}
+\newcommand{\basis}[1]{\keyword{basis}\ #1\ }
+\newcommand{\local}[2]{\keyword{local}\ #1\ \keyword{in}\ #2\ \keyword{end}}
+\newcommand{\open}[1]{\keyword{open}\ #1}
+\newcommand{\sequence}[2]{#1\ \keyword{;}\ #2}
+\newcommand{\pathmlb}{\textrm{path.mlb}}
+\newcommand{\pathsml}{\textrm{path.sml}}
+\newcommand{\structure}{\keyword{structure}\ }
+\newcommand{\signature}{\keyword{signature}\ }
+\newcommand{\functor}  {\keyword{\ functor\ }\ }
+\newcommand{\bas}[1]{\keyword{bas}\ #1\ \keyword{end}}
+\newcommand{\lete}[2]{\keyword{let}\ #1\ \keyword{in}\ #2\ \keyword{end}}
+
+\newcommand{\load}[1]{\mathfrak{L}(#1)}
+\newcommand{\makebasis}[2]{ #1 \Leftarrow #2 }
+\newcommand{\openbasis}[2]{ #1 \Rightarrow #2 }
+
+\newcommand{\Binds}{\Gamma_B}
+\newcommand{\BndAD}{\Delta_B}
+\newcommand{\Cache}{\Gamma_C}
+\newcommand{\Elabo}{\Gamma_E}
+\newcommand{\Empty}{\emptyset}
+\newcommand{\optional}[1]{\langle #1 \rangle}
+\newcommand{\ElabDec}{\ \vdash_D\ }
+\newcommand{\ElabExp}{\ \vdash_E\ }
+\newcommand{\ElabProg}{\ \vdash_P\ }
+
+\newcommand{\wildcard}{\underline{\phantom{2}}}
+
+\begin{document}
+
+\title {A pure specification of MLBasis}
+\author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
+\maketitle 
+
+\section{Notations}
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+SYMBOL      & EXPLANATION   \\
+\hline
+$\ElabDec$  & elaborate a MLB declaration \\
+\hline
+$\ElabExp$  & elaborate a MLB expression  \\
+\hline
+$\ElabProg$ & elaborate a SML program \\
+\hline
+$\Binds$    & BAS bindings  \\
+\hline
+$x \mapsto bas$ & a BAS binding \\
+\hline
+$\Cache$    & Cache of all elaborated MLBs \\
+\hline
+$\pathmlb \mapsto bas$ & a cached MLB \\
+\hline
+$\Elabo$    & Elaboration environment for SML program \\
+\hline
+$\BndAD$    & Additional BAS bindings  \\
+\hline
+$x$         & BAS variable  \\
+\hline      
+$d,d_1,d_2$ & CORE-ML declarations \\      
+\hline
+$ bas $     & a BASIS \\
+\hline
+$ \makebasis{bas}{\Elabo}$ & make a BASIS from the environment $\Elabo$ \\
+\hline
+$\wildcard$   & wildcard \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Elaborate a MLB declaration}
+\[
+\dfrac{ \Binds,\Cache,\Elabo,e \ElabExp \Cache',\Elabo',d_1 \qquad 
+        \makebasis{bas}{\Elabo'} \qquad 
+        \Binds,\Cache,\Elabo, \basis{xs} \ElabDec \BndAD, \Cache'', \Elabo'', d_2 }
+      { \Binds,\Cache,\Elabo, \basis{x:e\,\optional{,xs}} \ElabDec (x \mapsto bas) + \BndAD, \Cache'', \Elabo'', d_1 + d_2 }
+\]
+\[
+\dfrac{ }
+      { \Binds,\Cache,\Elabo, \basis{\Empty} \ElabDec \Empty, \Cache, \Elabo, \Empty}
+\]
+
+\[
+\dfrac{\Binds,\Cache,\Elabo,dec_1 \ElabDec \BndAD,\Cache',\Elabo',d_1 \qquad
+       \Binds+\BndAD,\Cache',\Elabo',dec_2 \ElabDec \BndAD',\Cache'',\Elabo'',d_2}
+      {\Binds,\Cache,\Elabo, \local{dec_1}{dec_2} \ElabDec \BndAD', \Cache'', \Elabo'', d_1+d_2}
+\]
+
+\[
+\dfrac{(x\mapsto bas) + \Binds, \Cache, \Elabo + bas, \open{xs} \ElabDec \wildcard, \wildcard , \Elabo'', d}
+      {(x\mapsto bas) + \Binds, \Cache, \Elabo, \open{x\,\optional{,xs}} \ElabDec \Empty, \Cache, \Elabo'', d}
+\]
+
+\[
+\dfrac{ }
+      { \Binds, \Cache, \Elabo, \open{\Empty} \ElabDec \Empty, \Cache, \Elabo, \Empty}
+\]
+
+
+\[
+\dfrac{\Binds,\Cache,\Elabo,dec_1 \ElabDec \BndAD,\Cache',\Elabo',d_1 \qquad
+       \Binds+\BndAD,\Cache',\Elabo',dec_2 \ElabDec \BndAD', \Cache'', \Elabo'', d_2}
+      {\Binds,\Cache,\Elabo,\sequence{dec_1}{dec_2} \ElabDec \BndAD+\BndAD',\Cache'',\Elabo'',d_1+d_2}
+\]
+
+\[
+\dfrac{}
+      {\Binds, (\pathmlb \mapsto bas) + \Cache, \Elabo, \pathmlb \ElabDec \Empty, (\pathmlb \mapsto bas) + \Cache, \Elabo + bas, \Empty}
+\]
+
+\[
+\dfrac{\Binds,\Cache,\Empty,\load{\pathmlb} \ElabDec \Cache',\Elabo',d \qquad
+       \makebasis{bas}{\Elabo'}}
+      {\Binds, \Cache, \Elabo, \pathmlb \ElabDec \Empty, (\pathmlb \mapsto bas) + \Cache, \Elabo + bas, d}
+\]
+
+\[
+\dfrac{\Binds, \Cache, \Elabo, \load{\pathsml} \ElabProg \wildcard, \Cache', \Elabo', d
+      }
+      {\Binds, \Cache, \Elabo, \pathsml \ElabDec \Empty, \Cache', \Elabo', d}
+\]
+
+\[
+\dfrac{}
+      {\Binds,\Cache,\Elabo, \structure{lhs=rhs} \ElabDec \Empty,\Cache,\Elabo +(lhs=rhs),\Empty}
+\]
+\[
+\dfrac{}
+      {\Binds,\Cache,\Elabo, \signature{lhs=rhs} \ElabDec \Empty,\Cache,\Elabo +(lhs=rhs),\Empty}
+\]
+\[
+\dfrac{}
+      {\Binds,\Cache,\Elabo, \functor{lhs=rhs} \ElabDec \Empty,\Cache,\Elabo +(lhs=rhs),\Empty}
+\]
+
+\section{Elaborate a MLB expression}
+
+\[
+\dfrac{\Binds,\Cache,\Elabo,dec \ElabDec \BndAD, \Cache', \Elabo', d}
+      {\Binds,\Cache,\Elabo,\bas{dec} \ElabExp \BndAD, \Cache', \Elabo', d}
+\]
+
+\[
+\dfrac{}
+      {(x \mapsto bas) + \Binds,\Cache,\Elabo,x \ElabExp \Empty, \Cache, \Elabo + bas, \Empty}
+\]
+
+\[
+\dfrac{\Binds,\Cache,\Elabo,dec \ElabDec \BndAD, \Cache', \Elabo', d_1 \qquad
+       \Binds+\BndAD,\Cache',\Elabo',exp \ElabExp \BndAD', \Cache'',\Elabo'', d_2}
+      {\Binds,\Cache,\Elabo,\lete{dec}{exp} \ElabExp \BndAD', \Cache'', \Elabo'', d_1 + d_2}
+\]
+
+\section {A referential implementation}
+\href{https://github.com/pierric/mlton}{Fork me on Github}
+
+\end{document}

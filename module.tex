@@ -1,0 +1,725 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[xetex]{hyperref}
+\usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
+\usepackage{xcolor}
+\usepackage{xifthen}
+
+\hypersetup{colorlinks=true}
+
+\newcommand{\key}[1]{\textrm{\textbf{#1}}}
+\newcommand{\sig}       {\key{sig}}
+\newcommand{\End}       {\key{end}}
+\newcommand{\val}       {\key{val}}
+\newcommand{\type}      {\key{type}}
+\newcommand{\eqtype}    {\key{eqtype}}
+\newcommand{\datatype}  {\key{datatype}}
+\newcommand{\exception} {\key{exception}}
+\newcommand{\of}        {\key{of}}
+\newcommand{\inc}       {\key{include}}
+\newcommand{\sharing}   {\key{sharing}}
+\newcommand{\where}     {\key{where}}
+\newcommand{\typerfn}   {\textit{typerfn}}
+\newcommand{\Let}       {\key{let}}
+\newcommand{\Structure} {\key{structure}}
+\newcommand{\Struct}	{\key{struct}}
+\newcommand{\In}        {\key{in}}
+\newcommand{\Local}     {\key{local}}
+\newcommand{\signature} {\key{signature}}
+\newcommand{\functor}   {\key{functor}}
+
+\newcommand{\B}  {\textrm{B}}
+\newcommand{\sB} {\textrm{\tiny B}}
+\newcommand{\E}  {\textrm{E}}
+\newcommand{\sE} {\textrm{\tiny E}}
+\newcommand{\T}  {\textrm{T}}
+\newcommand{\sT} {\textrm{\tiny T}}
+\newcommand{\TE} {\textrm{TE}}
+\newcommand{\sTE}{\textrm{\tiny TE}}
+\newcommand{\VE} {\textrm{VE}}
+\newcommand{\sVE}{\textrm{\tiny VE}}
+\newcommand{\SE} {\textrm{SE}}
+\newcommand{\sSE}{\textrm{\tiny SE}}
+\renewcommand{\G}{\textrm{G}}
+\newcommand{\sG} {\textrm{\tiny G}}
+\newcommand{\F}  {\textrm{F}}
+\newcommand{\sF} {\textrm{\tiny F}}
+
+\newcommand{\tycon}{\mathbb{C}}
+\newcommand{\vcon} {\mathbf{C}}
+\newcommand{\equality}{\mathcal{E}}
+\newcommand{\eqyes}{\equiv}
+\newcommand{\eqnot}{\nequiv}
+\newcommand{\VKE}  {\textrm{EXN}}
+\newcommand{\VKV}  {\textrm{VAR}}
+\newcommand{\VKC}  {\textrm{CONS}}
+\newcommand{\corenew}[1]{\textit{new\_#1}}
+
+\newcommand{\vdashSigBind} {\ \vdash_{\textrm{\tiny sigbind}}\ }
+\newcommand{\vdashSigexp}  {\ \vdash_{\textrm{\tiny sigexp}}\ }
+\newcommand{\vdashSpec}    {\ \vdash_{\textrm{\tiny spec}}\ }
+\newcommand{\vdashSpecTB}  {\ \vdash_{\textrm{\tiny specTB}}\ }
+\newcommand{\vdashSpecDBA} {\ \vdash_{\textrm{\tiny specDB1}}\ }
+\newcommand{\vdashSpecDBB} {\ \vdash_{\textrm{\tiny specDB2}}\ }
+\newcommand{\vdashTyperfn} {\ \vdash_{\textrm{\tiny rfn}}\ }
+\newcommand{\vdashShareTycon}{\ \vdash_{\textrm{\tiny share-tycon}}\ }
+\newcommand{\vdashShareStr}	{\ \vdash_{\textrm{\tiny share-str}}\ }
+\newcommand{\vdashStr}		{\ \vdash_{\textrm{\tiny str}}\ }
+\newcommand{\vdashStrDec}	{\ \vdash_{\textrm{\tiny strdec}}\ }
+\newcommand{\vdashStrBind} {\ \vdash_{\textrm{\tiny strbind}}\ }
+\newcommand{\vdashFctBind} {\ \vdash_{\textrm{\tiny fctbind}}\ }
+\newcommand{\vdashFctArg}  {\ \vdash_{\textrm{\tiny fctarg}}\ }
+\newcommand{\vdashFctParm} {\ \vdash_{\textrm{\tiny fctparm}}\ }
+\newcommand{\vdashProg}	   {\ \vdash_{\textrm{\tiny prog}}\ }
+\newcommand{\vdashT}       {\ \vdash_{\textrm{\tiny T}}\ }
+\newcommand{\vdashD}       {\ \vdash_{\textrm{\tiny D}}\ }
+\newcommand{\braced}[1]{\{#1\}}
+\newcommand{\angled}[1]{\,{\color{gray}\langle#1\rangle}\,}
+\newcommand{\qualtype}[2]{#1 \triangleright #2}
+\newcommand{\tyfun}[2]{\mathbf{\Lambda} #1\,.\,#2}
+\newcommand{\fctor}[2]{#1 \leadsto #2}
+
+\newcommand{\MaximizeEq}{\key{ME}}
+\newcommand{\matchEnv}[3][]{ \ifthenelse{\isempty{#1}}{#2 \sqsubseteq #3}{#1 \Leftarrow #2 \sqsubseteq #3}}
+\newcommand{\SUPP}[1]{\textrm{SUPP}(#1)}
+\newcommand{\KEYS}[1]{keys(#1)}
+\newcommand{\TYNAMES}[1]{\KEYS{#1}}
+\newcommand{\GENTYPES}[2]{renewtypes_{\textrm{\tiny $#1$}}(#2)}
+\newcommand{\compose}[2]{#1 \circ #2}
+\newcommand{\wildcard}{{\color{gray}\scriptstyle\textbf{*}}}
+\newcommand{\Empty}{\braced{}}
+\newcommand{\absval}{\star}
+
+\begin{document}
+
+\title {A pure specification of MLton - Part 3. Module}
+\author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
+\maketitle 
+
+\section{Modeling the Module}
+\[\begin{array}{lcl}
+    \B & = & (\F, \G, \E) \\
+    \F & = & \braced{fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, coredecs)} \\
+    \G & = & \braced{sigid \mapsto \E^\sT} \\
+    \E & = & (\TE,\SE,\VE)  \\
+    \TE& = & \braced{tycon \mapsto (arity, tyfun, constructors)} \\
+    \SE& = & \braced{strid \mapsto \E}  \\ 
+    \VE& = & \braced{vid   \mapsto (coreval,\delta, kind} \\
+    kind & = & \VKV | \VKC | \VKE \\
+\end{array}\]
+
+\section{Signature}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+sigbind
+    & = & \overline{sigid = sigexp}                        \\
+
+sigexp 
+    & = & sigid \\
+    & | & \sig\ spec\ \End  \\
+    & | & sigexp\ \where\ \overline{\type\ \overline{tyvar}\ tycon = type} \\
+    
+spec 
+    & = & \val\ \overline{vid : type} \\
+    & | & \type\ \overline{\overline{tyvar}\ tycon} \\
+    & | & \eqtype\ \overline{\overline{tyvar}\ tycon} \\
+    & | & \type\ \overline{\overline{tyvar}\ tycon = type} \\
+    & | & \datatype\ tycon = \datatype longtycon \\
+    & | & \datatype\ \overline{\overline{tyvar}\ tycon = \overline{vid\ \of\ type}} \\
+    & | & \exception\ \overline{vid\ \of\ type} \\
+    & | & \Structure\ \overline{strid:sigexp} \\
+    & | & \inc\ \overline{sigid} \\
+    & | & \inc\ sigexp \\
+    & | & spec\ \sharing\ \type\ \overline{longtycon} \\
+    & | & spec\ \sharing\ \overline{longstrid} \\
+    & | & spec\ \key{;}\ spec \\
+\end{array}\]}
+
+\section{Elaboration of signature}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \B, sigbind \vdashSigBind \B'$ }
+\end{flushright}
+
+
+\[
+\frac
+ {\B, sigexp \vdashSigexp \E \qquad
+  \T' = \TYNAMES{\E}-\TYNAMES{\B}}
+ {\B, sigid = sigexp \vdashSigBind \braced{sigid \mapsto \E^{\sT'}}^\sG}
+\]
+
+\[
+\frac
+ { sigid \mapsto \E^{\sT} \in B }
+ {\B, sigid \vdashSigexp \E}
+\]
+
+\[
+\frac
+ {\B, spec \vdashSpec \E}
+ {\B, \sig\ spec\ \End \vdashSigexp \E}
+\]
+
+\[
+\frac
+ {\begin{array}{c}
+  \B, sigexp \vdashSigexp \E \qquad
+  \B, \E, \typerfn_i \vdashTyperfn \varphi_i
+  \end{array}}
+ {\B, sigexp\ \where\ \overline{\typerfn} \vdashSigexp [\sum_i \varphi_i]\E}
+\]
+
+\subsection{elaborating specification}
+\[
+\cfrac
+ {\B, type_i \vdashT \qualtype{p_i}{\tau_i}}
+ {\B, \val\ \overline{vid:type}_{1..n} \vdashSpec \sum_i \braced{vid_i \mapsto (\absval, gen_\sB(\qualtype{p_i}{\tau_i}), \VKV)}}
+\]
+
+\[
+\cfrac
+ {\overline{\alpha}_i^{(k_i)} = tyvars_i \qquad
+  \tycon_i \Leftarrow \corenew{tycon}}
+ {\B, \type\ \overline{tyvars\ tycon} \vdashSpec \sum_i \braced{tycon_i \mapsto (k_i, \tycon_i^\eqnot)}^\sTE}
+\]
+
+\[
+\cfrac
+ {\overline{\alpha}_i^{(k_i)} = tyvars_i \qquad
+  \tycon_i \Leftarrow \corenew{tycon}}
+ {\B, \eqtype\ \overline{tyvars\ tycon} \vdashSpec \sum_i \braced{tycon_i \mapsto (k_i, \tycon_i^\eqyes)}^\sTE}
+\]
+
+\[
+\cfrac
+ {\B, tybind_i \vdashSpecTB \TE_i}
+ {\B, \type\ \overline{tybind} \vdashSpec \sum_i \TE_i}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  (eqset,\wildcard) \Leftarrow \MaximizeEq(\overline{databind}) \qquad
+  \B, eqset, databind_i \vdashSpecDBA \TE_i             \\
+  \B + \sum_i \TE_i, databind_j \vdashSpecDBB \VE_j
+  \end{array}}
+ {\B, \datatype\ \overline{databind} \vdashSpec \sum_i \TE_i \oplus \sum_j \VE_j}
+\]
+
+\[
+\cfrac
+ {\B, type_i \vdashT \qualtype{p_i}{\tau_i} \qquad
+  free(\qualtype{p_i}{\tau_i}) = \emptyset
+  \vcon\Leftarrow\corenew{vcon}}
+ {\B, \exception\ \overline{con\ \of\ type} \vdashSpec
+    \sum_i \braced{con_i \mapsto (\vcon_i, \qualtype{p_i}{\tau_i\to exn}, \VKE)}^\sVE}
+\]
+
+\[
+\cfrac
+ {\B, sigexp_i \vdashSigexp \E_i}
+ {\B, \Structure\ \overline{strid:sigexp} \vdashSpec
+   \sum_i \braced{strid_i \mapsto \E_i}^\sSE }
+\]
+
+\[
+\cfrac
+ {\B, sigexp \vdashSigexp \E}
+ {\B, \inc\ sigexp \vdashSpec \E}
+\]
+
+\[
+\cfrac
+ {sigid_i \mapsto \E_i^{\T_i} \in^\sG \B}
+ {\B, \inc\ \overline{sigid} \vdashSpec \sum_i \E_i}
+\]
+
+\[
+\cfrac
+ {\B,      spec_1 \vdashSpec \E_1 \qquad
+  \B+\E_1, spec_2 \vdashSpec \E_2}
+ {\B, spec_1\ \key{;}\ spec_2 \vdashSpec \E_1 + \E_2}
+\]
+
+\[
+\cfrac
+ { \B, spec \vdashSpec \E \qquad
+   \B, \E, \overline{longtycon} \vdashShareTycon \E' }
+ {\B, spec\ \sharing\ \type\ \overline{longtycon} \vdashSpec \E'}
+\]
+
+\[
+\cfrac
+ {\B, spec \vdashSpec \E \qquad
+  \B, \E, \overline{longstrid},\braced{(i,j)\,|\,i<j}\vdashShareStr E'}
+ {\B, spec\ \sharing\ \overline{longstrid} \vdashSpec \E'}
+\]
+
+\subsection {type refinement}
+\[
+\cfrac
+ {tycon \mapsto k, \tycon^\equality \in \E                  \qquad
+  \overline{\alpha}^{(k)} = \overline{tyvar}                \qquad
+  \B, type \vdashT \qualtype{p}{\tycon'^\equality\ \overline{\alpha}} \qquad
+  }
+ {\B, \E, \type\ \overline{tyvar}\ tycon = type \vdashTyperfn \braced{\tycon \mapsto \tycon'}}
+\]
+\[
+\cfrac
+ {tycon \mapsto k, \tycon^\equality \in \E                  \qquad
+  \overline{\alpha}^{(k)} = tyvars                          \qquad
+  \B, type \vdashT \qualtype{p}{\tau}                       \qquad
+  \equality = eq(\tau)
+  }
+ {\B, \E, \type\ tyvars\ tycon = type \vdashTyperfn
+    \braced{\tycon \mapsto \tyfun{\overline{\alpha}}{\qualtype{p}{\tau}}}}
+\]
+
+\subsection {elaborating type bindings}
+\[
+\cfrac
+ {\B, type \vdashT \tycon^\equality \overline\alpha }
+ {\B,\overline{\alpha}^{(k)}\ tycon = type \vdashSpecTB \braced{tycon \mapsto (k, \tycon^\equality,\emptyset}^\TE}
+\]
+\[
+\cfrac
+ {\B, type \vdashT \tau \qquad free(\tau) \subseteq \overline\alpha}
+ {\B,\overline{\alpha}^{(k)}\ tycon = type \vdashSpecTB 
+     \braced{tycon \mapsto (k, \tyfun{\overline\alpha}{\tau},\emptyset)}^\TE}
+\]
+\subsection {elaborating datatype bindings}
+\[
+\cfrac
+ {\overline{\alpha}^{(k)} = tyvars      \qquad
+  \tycon \Leftarrow \corenew{tycon} 	\qquad
+  \equality = \left\{\begin{array}{ll}
+  			  \eqyes	& \textrm{if } tycon \in eqset  	\\
+			  \eqnot	& \textrm{otherwise.}				\\
+  			  \end{array}\right.
+ }
+ {\B,eqset,tyvars\ tycon = \overline{vid\ \angled{\key{of}\ type}} \vdashSpecDBA
+    \braced{tycon \mapsto (k, \tycon^\equality,\overline{vid})}^\TE }
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \overline{\alpha}^{(k)} = tyvars                 \qquad
+  tycon \mapsto (k,\tycon) \in^\TE \B 	           \\
+  \angled{\B,type_i \vdashT \qualtype{p_i}{\tau_i} \qquad
+  free(\tau_i) \subseteq \overline{\alpha}}        \\
+  \delta_i = \forall{\overline\alpha}.(
+    \qualtype{\angled{p_i}}{{\angled{\tau_i \to }\tycon\ \overline\alpha}}) \qquad
+  \vcon_i\Leftarrow\corenew{vcon}			       \\
+  \end{array} }
+ {
+  \B,tyvars\ tycon = \overline{vid\ \angled{\key{of}\ type}} \vdashSpecDBB 
+    \sum_i\braced{con_i \mapsto (\vcon_i,\delta_i,\VKC)}^\VE 
+ }
+\]
+
+\subsection {type sharing}
+\[
+\cfrac
+ {\begin{array}{c}
+  longtycon_i \mapsto (k_i, \tycon_i^{\equality_i}) \in^\sTE \E \qquad
+  k_1 = \cdots k_n                                              \\
+  \forall i. \tycon_i \not\in^\sT \B \qquad
+  \equality = \left\{\begin{array}{ll}
+                \eqyes & \exists i. \equality_i = \eqyes \\
+                \eqnot & \textrm{otherwise.}             \\
+              \end{array}\right.                                \\
+  \tycon = \corenew{tycon}  \qquad
+  \varphi = \sum_i \braced{\tycon_i \mapsto \tycon^\equality}
+  \end{array}}
+ {\B, \E, \overline{longtycon} \vdashShareTycon [\varphi]\E}
+\]
+\subsection {structure sharing}
+\[
+\cfrac
+ {}
+ {\B,\E,\overline{longstrid}, \emptyset \vdashShareStr \E}
+\]
+\[
+\cfrac
+ {\begin{array}{c}
+  longstrid_i \mapsto \E_a \in \E   \qquad
+  longstrid_j \mapsto \E_b \in \E   \qquad
+  \overline{tycon}^{(k)} = \E_a \cap \E_b \\
+  \begin{array}{lllll}
+  \B,&\E  ,&longstrid_i.tycon_1 = longstrid_j.tycon_1 &\vdashShareTycon &\E_1 \\
+  \B,&\E_1,&longstrid_i.tycon_2 = longstrid_j.tycon_2 &\vdashShareTycon &\E_2 \\
+  \multicolumn{5}{c}{\cdots}\\
+  \B,&\E_k,&longstrid_i.tycon_k = longstrid_j.tycon_k &\vdashShareTycon &\E'  \\
+  \end{array} \\
+  \B,\E',\overline{longstrid}, pairs        \vdashShareStr \E''
+  \end{array}}
+ {\B,\E, \overline{longstrid}, (i,j)::pairs \vdashShareStr \E''}
+\]
+
+\section{Structure}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+strdec
+    & = & dec	                        	\\
+    & | & \Local\ strdec\ \In\ strdec\ \End	\\
+    & | & strdec\ \key{;}\ strdec			\\
+    & | & \Structure\ \overline{strbind}	\\
+
+strbind
+    & = & strid = str			\\
+    & | & strid :  sigexp = str	\\
+    & | & strid :> sigexp = str	\\
+    
+str 
+    & = & longstrid 				\\
+    & | & \Struct\ dec\ \End 		\\
+    & | & str :  sigexp				\\
+    & | & str :> sigexp				\\
+    & | & fctid\,(fctarg)			\\
+    & | & \Let\ dec\ \In\ str\ \End \\
+
+fctarg
+	& = & dec						\\
+	& | & str						\\
+	    
+\end{array}\]}
+
+\section{Elaboration of structure}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \B, strdec \vdashStrDec coredec, \E, \rho$ }
+\end{flushright}
+\[
+\cfrac
+ {\B, dec \vdashD      cdecs, \E, \rho}
+ {\B, dec \vdashStrDec cdecs, \E, \rho}
+\]
+
+\[
+\cfrac
+ {         \B             , strdec_1 \vdashStr cdecs_1, \E_1, \rho_1  \qquad
+  ([\rho_1]\B) \oplus \E_1, strdec_2 \vdashStr cdecs_2, \E_2, \rho_2  }
+ {\B, \Local\ strdec_1\ \In\ strdec_2\ \End \vdashStrDec cdecs_1+cdecs_2, \E_2, \compose{\rho_2}{\rho_1}}
+\]
+
+\[
+\cfrac
+ {         \B             , strdec_1 \vdashStr cdecs_1, \E_1, \rho_1  \qquad
+  ([\rho_1]\B) \oplus \E_1, strdec_2 \vdashStr cdecs_2, \E_2, \rho_2  }
+ {\B, strdec_1\ \key{;}\ strdec_2 \vdashStrDec cdecs_1 + cdecs_2, ([\rho]\E_1)+\E_2, \compose{\rho_2}{\rho_1}}
+\]
+
+\[
+\cfrac
+ {\B, strbind_i \vdashStrBind cdecs_i, \E_1, \rho_i}
+ {\B, \Structure\ strbind \vdashStrDec \sum_i cdecs_i, \sum_i \E_i, \prod_i \rho_i}
+\]
+
+\subsection{elaborating structure expression}
+
+\[
+\cfrac
+ {longstrid \mapsto \E \in^\sSE \B}
+ {\B, longstrid \vdashStr \Empty,\E,\Empty}
+\]
+
+\[
+\cfrac
+ {\B dec \vdashD cdecs,\E,\rho}
+ {\B, \Struct\ dec\ \End \vdashStr cdecs,\E,\rho}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B,sigexp \vdashSigexp \E_1  		 \qquad
+  \B,str \vdashStr cdecs,\E_2,\rho	 \\
+  \matchEnv[\varphi]{\E_1}{\E_2}	 \qquad	
+  \T = \TYNAMES{\E_1} - \TYNAMES{\E\ \of\ \B} \qquad
+  \SUPP{\varphi}\subseteq\T
+  \end{array}}
+ {\B, str:sigexp \vdashStr \GENTYPES{[\varphi]\T}{[\varphi]\E_1}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B,sigexp \vdashSigexp \E_1	     \qquad
+  \B,str \vdashStr cdecs,\E_2,\rho	 \\
+  \matchEnv[\varphi]{\E_1}{\E_2}	 \qquad	
+  \T = \TYNAMES{\E_1} - \TYNAMES{\E\ \of\ \B} \qquad  
+  \SUPP{\varphi}\subseteq\T
+  \end{array}}
+ {\B, str:>sigexp \vdashStr \GENTYPES{\T}{\E_1}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B,fctarg \vdashFctArg cdecs_1, \E, \rho                              	\qquad
+  fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, cdecs_2) \in^\sG \B  	\\
+  \matchEnv[\varphi]{\E_1}{\E}                                          	\qquad
+  \SUPP{\varphi}\subseteq \T_1                                          	\\
+  \end{array}}
+ {\B,fctid\,(fctarg) \vdashStr cdecs_1 + cdecs_2, [\varphi](\GENTYPES{\T_2}{\E_2}), \rho}
+\]
+
+\[
+\cfrac
+ {\B, dec \vdashD cdecs_1,\E, \rho_1                    \qquad
+  [\rho]\B \oplus \E, str \vdashStr cdecs_2, \E', \rho_2}
+ {\B, \Let\ dec\ \In\ str\ \End \vdashStr cdecs_1+cdecs_2,\E', \compose{\rho_2}{\rho_1}}
+\]
+
+\subsection{elaborating structure bindings}
+
+\[
+\cfrac
+ {\B, str \vdashStr cdecs, \E, \rho}
+ {\B, strid = str \vdashStrBind cdecs, \braced{strid \mapsto \E}^\sSE, \rho}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B, str    \vdashStr    cdecs_1, \E_1, \rho    \qquad
+  \B, sigexp \vdashSigexp \E_2                   \\
+  \T = \TYNAMES{\E_2}-\TYNAMES{\B}               \qquad
+  \E'_2 = \GENTYPES{\T}{\E_2}                    \\
+  \matchEnv[\varphi]{\E'_2}{\E_1}                \qquad
+  \SUPP{\varphi} \subseteq ([\varphi]\T)
+  \end{array}}
+ {\B, strid: sigexp = str \vdashStrBind cdecs, \braced{strid \mapsto [\varphi]\E'_2}, \rho}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B, str    \vdashStr    cdecs_1, \E_1, \rho    \qquad
+  \B, sigexp \vdashSigexp \E_2                   \\
+  \T = \TYNAMES{\E_2}-\TYNAMES{\B}               \qquad
+  \E'_2 = \GENTYPES{\T}{\E_2}                    \\
+  \matchEnv[\varphi]{\E'_2}{\E_1}                \qquad
+  \SUPP{\varphi} \subseteq ([\varphi]\T)
+  \end{array}}
+ {\B, strid:>sigexp = str \vdashStrBind cdecs, \braced{strid \mapsto \E'_2}, \rho}
+\]
+
+\subsection{elaborating functor argument}
+\[
+\cfrac
+ {\B, str \vdashStr cdecs,\E,\rho}
+ {\B, str \vdashFctArg cdecs, \E, \rho}
+\]
+
+\[
+\cfrac
+ {\B, dec \vdashD   cdecs,\E,\rho}
+ {\B, dec \vdashFctArg cdecs, \E, \rho}
+\]
+
+\section{functor}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+fctbind
+    & = & fctid\,(fctparm) \angled{fctcons} = str \\
+fctcons    
+    & = & :  sigexp = str \\
+    & | & :> sigexp = str \\
+fctparm 
+    & = & strid: sigexp                  \\
+    & | & spec                           \\
+\end{array}
+\]}
+
+\section{Elaboration of functor}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \B, fctbind \vdashFctBind \B', \rho$ }
+\end{flushright}
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \B,fctparm \vdashFctParm \E_1^{\sT_1}                               \qquad
+  \B \oplus \E_1, str \angled{fctcons} \vdashStr cdecs, \E_2, \rho    \\
+  \T_2 = \TYNAMES{\E_2}-\T_1-\TYNAMES{\B}                 
+  \end{array}}
+ {\B, fctid\,(fctparm) \angled{fctcons} = str \vdashFctBind 
+	\braced{fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, cdecs)}^\sF, \rho}
+\]
+
+\subsection{elaborating functor parameter}
+
+\[
+\cfrac
+ {\B, sigexp \vdashSigexp \E_1      \qquad
+  \T = \TYNAMES{\E_1}-\TYNAMES{\B}  \qquad
+  \E_2 = \GENTYPES{\T}{\E_1}}
+ {\B, strid: sigexp \vdashFctParm \E_2^{\sT}}
+\]
+
+\[
+\cfrac
+ {\B, spec \vdashSpec \E_1          \qquad
+  \T = \TYNAMES{\E_1}-\TYNAMES{\B}  \qquad
+  \E_2 = \GENTYPES{\T}{\E_1}}
+ {\B, spec \vdashFctParm \E_2^{\sT}}
+\]
+
+\section{Program}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+prog
+    & = & strdec                            \\
+    & | & \signature\ \overline{sigbind}    \\
+    & | & \functor\   \overline{fctbind}	\\
+    & | & prog\ \key{;}\ prog				\\
+\end{array}
+\]}
+
+\section{Elaboration of program}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \B, prog \vdashProg \B', \rho$ }
+\end{flushright}
+
+\[
+\frac
+ {\B, strdec \vdashStrDec \E,\rho}
+ {\B, strdec \vdashProg \E,\rho}
+\]
+
+\[
+\frac
+ {\begin{array}{c}
+  \B, sigbind_1 \vdashSigBind \B_1 \\
+  \B \oplus \B_1, sigbind_2 \vdashSigBind \B_2 \\
+  \cdots \\
+  \B \oplus \B_1 \cdots \oplus \B_{n-1}, sigbind_n \vdashSigBind \B_n \\
+  \end{array}}
+ {\B, \signature\ sigbind_{1..n} \vdashProg \sum_i \B_i, \Empty}
+\]
+
+\[
+\frac
+ {\begin{array}{lll}
+  \B      , fctbind_1 \vdashFctBind \B_1,\rho_1  & \B'_1 = ([\rho_1]\B)    + \B_1 & \B''_1 =                  \B_1\\
+  \B'_1    , fctbind_2 \vdashFctBind \B_2,\rho_2 & \B'_2 = ([\rho_2]\B'_1) + \B_2 & \B''_2 = ([\rho_2]\B''_1)+\B_2\\
+  \multicolumn{3}{c}{\cdots} \\
+  \B'_{n-1}, fctbind_n \vdashFctBind \B_n,\rho_n & \wildcard & \B''_n= ([\rho_n]\B''_{n-1}) + \B_{n} \\
+  \end{array}}
+ {\B, functor\ \overline{fctbind} \vdashProg \B''_n, \prod_i\rho_i}
+\]
+
+
+\[
+\cfrac
+ {\B               , prog_1 \vdashProg \B_1,\rho_1 \qquad
+  [\rho_1]\B + \B_1, prog_2 \vdashProg \B_2,\rho_2 }
+ {\B, prog_1\ \key{;}\ prog_2 \vdashProg [\rho_2]\B_1 + \B_2, \compose{\rho_2}{\rho_1}}
+\]
+
+\section{realisation}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \matchEnv[\varphi]{\E_1}{\E_2} $ }
+\end{flushright}
+
+\newcommand{\instEop} {:<}
+\newcommand{\instE}  [3][]{\ifthenelse{\isempty{#1}}{#2 \instEop #3}{#2 \instEop #3 = #1}}
+\newcommand{\enrichE}[2]{#1 \prec #2}
+\[
+\cfrac
+ {\instE[\varphi]{\E_1}{\E_2} \qquad \enrichE{[\varphi]\E_1}{\E_2} }
+ {\matchEnv[\varphi]{\E_1}{\E_2}}
+\]
+\subsection{instantiation}
+\[
+\cfrac
+ {\instE[\varphi_1]{\TE_1}{\TE_2} \qquad \instE[\varphi_2]{\TE_2}{\SE_2}}
+ {\instE[\varphi_1 + \varphi_2]{(\TE_1,\SE_1,\VE_1)}{(\TE_2,\SE_2,\VE_2)}}
+\]
+\[
+\cfrac
+ {\begin{array}{c}
+  tycon_i \mapsto (k_{i_1}, tyfun_{i_1}) \in \TE_1 \qquad tycon_i \mapsto (k_{i_2}, tyfun_{i_2}) \in \TE_2 \\
+  k_{i_1} = k_{i_2} \qquad eq(tyfun_{i_1}) = eq(tyfun_{i_2}) \qquad \instE[\varphi_i]{tyfun_{i_1}}{tyfun_{i_2}} \\
+  \end{array}}
+ {\instE[\sum_i\varphi_i]{\TE_1}{\TE_2}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  strid_i \mapsto \E_{i_1} \in \SE_1 \qquad strid_i \mapsto \E_{i_2} \in \SE_2 \\
+  \instE[\varphi_i]{\E_{i_1}}{\E_{i_2}}
+  \end{array}}
+ {\instE[\sum_i\varphi_i]{\SE_1}{\SE_2}}
+\]
+
+\[
+\begin{array}{lclcl}
+{\tycon}    & \instEop & {tyfun}     & = & \braced{\tycon \mapsto tyfun} \\
+{\wildcard} & \instEop & {\wildcard} & = & \Empty \\
+\end{array}
+\]
+
+\subsection{enrichment}
+\[
+\cfrac
+ {\enrichE{\TE_1}{\TE_2} \qquad \enrichE{\SE_1}{\SE_2} \qquad \enrichE{\VE_1}{\VE_2}}
+ {\enrichE{(\TE_1,\SE_1,\VE_1)}{(\TE_2,\SE_2,\VE_2)}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{cl}
+  \multicolumn{2}{c}{\TYNAMES{\TE_1}\subseteq\TYNAMES{\TE_2}}   \\
+  \forall\ tycon \in \TYNAMES{\TE_1}. 
+    & tycon \mapsto tystr_1 \in \TE_1    \\
+    & tycon \mapsto tystr_2 \in \TE_2    \\
+    & \enrichE{tystr_1}{tystr_2}
+  \end{array}}
+ {\enrichE{\TE_1}{\TE_2}}
+\]
+
+\[
+\cfrac
+ {cons_1 = \emptyset \vee cons_1 = cons_2}
+ {\enrichE{(k, tyfun, cons_1)}{(k, tyfun, cons_2)}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{cl}
+  \multicolumn{2}{c}{\KEYS{\SE_1} \subseteq \KEYS{\SE_2}}   \\
+  \forall\ strid \in \KEYS{\SE_1}. 
+    & strid \mapsto \E_1 \in \SE_1 \\
+    & strid \mapsto \E_2 \in \SE_2 \\
+    & \enrichE{\E_1}{\E_2}
+  \end{array}}
+ {\enrichE{\SE_1}{\SE_2}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{cl}
+  \multicolumn{2}{c}{\KEYS{\VE_1} \subseteq \KEYS{\VE_2}}   \\
+  \forall\ vid \in \KEYS{\VE_1}. 
+    & vid \mapsto val_1 \in \VE_1 \\
+    & vid \mapsto val_2 \in \VE_2 \\
+    & \enrichE{val_1}{val_2}
+  \end{array}}
+ {\enrichE{\VE_1}{\VE_2}}
+\]
+
+\[
+\cfrac
+ {kind_1 = \VKV \vee kind_1 = kind_2}
+ {\enrichE{(\absval,\delta,kind_1)}{(\wildcard, \delta, kind_2)}}
+\]
+
+\end{document}
+
