@@ -2,8 +2,16 @@
 \usepackage[xetex]{hyperref}
 \usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
 \usepackage{xcolor}
-
+\usepackage{fancyhdr}
+\usepackage{ccicons}
 \hypersetup{colorlinks=true}
+\pagestyle{fancy}
+
+\fancyhf{}
+\cfoot{\thepage}
+\rfoot{\ccby}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.4pt}
 
 \newcommand{\key}[1]{\textrm{\textbf{#1}}}
 \newcommand{\nbkey}[1]{\textrm{#1}}
@@ -84,6 +92,7 @@
 \title {A pure specification of MLton - Part 2. Core}
 \author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
 \maketitle 
+\thispagestyle{fancy}
 
 \section{Syntax of Declaration}
 {\renewcommand{\arraystretch}{1.2}\[

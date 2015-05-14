@@ -2,6 +2,17 @@
 \usepackage[xetex]{hyperref}
 \usepackage{mathtools,latexsym,amsfonts}
 \usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{ccicons}
+\hypersetup{colorlinks=true}
+\pagestyle{fancy}
+
+\fancyhf{}
+\cfoot{\thepage}
+\rfoot{\ccby}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
 \newcommand{\keyword}[1]{\textrm{\textbf{#1}}}
 \newcommand{\basis}[1]{\keyword{basis}\ #1\ }
 \newcommand{\local}[2]{\keyword{local}\ #1\ \keyword{in}\ #2\ \keyword{end}}
@@ -36,6 +47,7 @@
 \title {A pure specification of MLBasis}
 \author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
 \maketitle 
+\thispagestyle{fancy}
 
 \section{Notations}
 \begin{center}
@@ -158,6 +170,8 @@ $\wildcard$   & wildcard \\
 \]
 
 \section {A referential implementation}
+This formalization could be more comprehensible than the original implementation in the MLton. See the following fork of
+MLton.
 \href{https://github.com/pierric/mlton}{Fork me on Github}
 
 \end{document}

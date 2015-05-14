@@ -3,8 +3,17 @@
 \usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
 \usepackage{xcolor}
 \usepackage{xifthen}
+\usepackage{fancyhdr}
+\usepackage{ccicons}
 
 \hypersetup{colorlinks=true}
+\pagestyle{fancy}
+
+\fancyhf{}
+\cfoot{\thepage}
+\rfoot{\ccby}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.4pt}
 
 \newcommand{\key}[1]{\textrm{\textbf{#1}}}
 \newcommand{\sig}       {\key{sig}}
@@ -94,6 +103,7 @@
 \title {A pure specification of MLton - Part 3. Module}
 \author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
 \maketitle 
+\thispagestyle{fancy}
 
 \section{Modeling the Module}
 \[\begin{array}{lcl}
