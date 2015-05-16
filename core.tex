@@ -106,7 +106,7 @@
 \maketitle 
 \thispagestyle{fancy}
 
-\section{Syntax of Declaration}
+\section{Declaration in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcrll}
 \prodlhs{dec}
@@ -129,8 +129,22 @@
 	 & = & \multicolumn{2}{l}{\overline{tyvar} \quad tycon = (vid \ \angled{\key{of}\ type})_{1:n} } 		&\\
 \prodlhs{funcbind}
 	 & = & \multicolumn{2}{l}{\overline{vid \ \overline{pat}:type = exp}} &\\
-\prodlhs{tyvar}
-     & = & \multicolumn{2}{l}{\alpha,\beta,\cdots} &\\
+\end{array}
+\]}
+
+\section{Declaration in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcrll}
+\prodlhs{coredec}
+     & = & \key{val}  	  & \overline{corepat = coreexp} &\\
+     & | & \key{datatype} & \tycon\ \overline{(\vcon,\tau)} &\\
+     & | & \key{exception}& \overline{(\vcon,\tau)} &\\
+     & | & \key{fun}      & \overline{(corevar, correct)} &\\
+     & | & \prodlhs{$coredec_1$} & \key{;}\quad \prodlhs{$coredec_2$} &\\
+\tycon
+	 &   & \multicolumn{3}{l}{\comment{type constructor}}\\
+\vcon
+	 &   & \multicolumn{3}{l}{\comment{value constructor}}\\
 \end{array}
 \]}
 
@@ -209,14 +223,12 @@
   \overline{\alpha} \cap free(E) = \emptyset                                \qquad
   v_i\Leftarrow\corenew{var}			                                    \\
   \Env,fb_i\vdash_{\sFB_1} fn_i, cpats_i, \qualtype{p_i}{\tau_i},\VE_i      \\
-  \Env_0 = \Env + \sum_i\braced{fn_i \mapsto (v_i, \qualtype{p_i}{\tau_i}, \VKV)} + \overline{\alpha} \\
+  \Env_0 = \Env + \sum_i\braced{fn_i \mapsto (v_i, \qualtype{p_i}{\tau_i}, \VKV)} + \overline{\alpha} \qquad
+  \rho'_0 = \Empty \\
   \begin{array}{rlll}
-  (\Env_0 + \VE_1),& cpats_1, \qualtype{p_1}{\tau_1}, fb_1 &
+  \subst{\rho'_0}{(\Env_0 + \VE_1)},& cpats_1, \qualtype{p_1}{\tau_1}, fb_1 &
     \vdash_{\sFB_2} cexp_1, \qualtype{p_1'}{\tau_1'}, \rho_1
-  & \rho'_1 = \rho_1  \\
-  \subst{\rho'_1}{(\Env_0 + \VE_2)},& cpats_2, \qualtype{p_2}{\tau_2}, fb_2 &
-    \vdash_{\sFB_2} cexp_2, \qualtype{p_2'}{\tau_2'}, \rho_2
-  & \rho'_2 = \compose{\rho_2}{\rho'_1}  \\
+  & \rho'_1 = \compose{\rho_1}{\rho'_0}  \\
   \multicolumn{4}{c}{\cdots} \\
   \subst{\rho'_{n-1}}{(\Env_0 + \VE_n)},& cpats_n, \qualtype{p_n}{\tau_n}, fb_n &
     \vdash_{\sFB_2} cexp_n, \qualtype{p_n'}{\tau_n'}, \rho_n
@@ -261,19 +273,18 @@
 
 \[
 \cfrac
- {\begin{array}{c}
-   \Env,\overline{tyvar}, (pat, exp)_1 \vdash_{\sVB'} 
-        (cpat, cexp)_1, \VE_1, \rho_1 \qquad \rho'_1 = \rho_1 \\
-   \subst{\rho'_1}\Env,\overline{tyvar}, (pat, exp)_2 \vdash_{\sVB'}
-        (cpat, cexp)_2, \VE_2, \rho_2 \qquad \rho'_2 = \compose{\rho_2}{\rho'_1} \\
-   \cdots \\
+ {\begin{array}{cl}
+   & \rho'_0 = \Empty \\
+   \subst{\rho'_0}\Env,\overline{tyvar}, (pat, exp)_1 \vdash_{\sVB'} 
+        (cpat, cexp)_1, \VE_1, \rho_1 & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
+   \multicolumn{2}{c}{\cdots} \\
    \subst{\rho'_{n-1}}\Env,\overline{tyvar}, (pat, exp)_n \vdash_{\sVB'}
-        (cpat, cexp)_n, \VE_n, \rho_n \qquad \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\  
+        (cpat, cexp)_n, \VE_n, \rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\  
    \braced{\VE_i}\ \nbkey{disjoints}
   \end{array}}
  {
   \Env,\overline{tyvar}, \overline{pat = exp} \vdash_\sVB
-    \overline{cpat = cexp}, \sum_i\VE_i, \rho'_n
+    \overline{cpat = cexp}, \subst{\rho'_n}{\sum_i\VE_i}, \rho'_n
  }
 \]
 
@@ -284,30 +295,29 @@
    \overline{\alpha} \cap free(\Env) = \emptyset \\
    \Env,pat \vdashP cpat, \VE, \qualtype{p_{1}}{\tau_{1}} \qquad
    \Env+\overline{\alpha}, exp \vdashE cexp, \iota, \qualtype{p_{2}}{\tau_{2}}, \rho \\
-   \unify{[\rho]\tau_{1}}{\tau_{2}}{\rho'}  \qquad 
-    [\rho'](p_{1} \cup p_{2})\ \nbkey{holds} \\
+   \unify{[\rho]\tau_{1}}{\tau_{2}}{\rho'}   \qquad 
+   \rho''=\compose{\rho'}{\rho}				 \qquad
+    [\rho''](p_{1} \cup p_{2})\ \nbkey{holds} \\ 
   \end{array}}
  {\begin{array}{ll} 
   \Env,\overline{tyvar}, (pat, exp) \vdash_{\sVB'}
-   (cpat, cexp), gen_\Env^{\iota}([\rho'](\qualtype{p_{2}}{\VE})), \compose{\rho'}{\rho} \\
+   (cpat, cexp), gen_{\subst{\rho''}\sEnv}^{\iota}(\subst{\rho''}{(\qualtype{p_{2}}{\VE}))}, \rho'' \\
   \end{array}}
 \]
 
 \[
 \cfrac
- {\begin{array}{c}
-   
+ {\begin{array}{cl}
+   & \rho'_0 = \Empty \\
    \Env,\overline{tyvar}, (pat, match)_1 \vdash_{\sVB'}
-        (cpat, cexp)_1, \VE_1, \rho_1 \qquad \rho'_1 = \rho_1 \\
-   \subst{\rho'_1}\Env,\overline{tyvar}, (pat, match)_2 \vdash_{\sVB'}
-        (cpat, cexp)_2, \VE_2, \rho_2 \qquad \rho'_2 = \compose{\rho_2}{\rho'_1} \\
-   \cdots \\
+        (cpat, cexp)_1, \VE_1, \rho_1 & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
+   \multicolumn{2}{c}{\cdots} \\
    \subst{\rho'_{n-1}}\Env,\overline{tyvar}, (pat,match)_n \vdash_{\sVB'}
-        (cpat, cexp)_n, \VE_n, \rho_n \qquad \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
+        (cpat, cexp)_n, \VE_n, \rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
    \braced{\VE_i}\ \nbkey{disjoints}
   \end{array}}
  {\Env,\overline{tyvar}, \key{rec}\ \overline{pat = \key{fn}\ match} \vdash_\sVB
-    \overline{cpat = cexp}, \sum_i\VE_i, \prod_i(\rho_i)}
+    \overline{cpat = cexp}, \sum_i\VE_i, \rho'_n}
 \]
 
 \[
@@ -318,10 +328,11 @@
    \Env,pat \vdashP cpat, \VE, \qualtype{p_{1}}{\tau_{1}} \qquad
    \Env+\overline{\alpha}+\VE, match \vdash_\Match cexp, \qualtype{p_2}{\tau_2}, \rho \\
    \unify{[\rho]\tau_{1}}{\tau_{2}}{\rho'} \qquad 
-    [\rho'](p_{1} \cup p_{2})\ \nbkey{holds} \\
+   \rho''=\compose{\rho'}{\rho}				 \qquad   
+    [\rho''](p_{1} \cup p_{2})\ \nbkey{holds} \\
   \end{array}}
  { \Env,\overline{tyvar}, (pat, match) \vdash_{\sVB'}
-   (cpat, cexp), gen_\Env([\rho'](\qualtype{p_{2}}{\VE})), \compose{\rho'}{\rho}}
+   (cpat, cexp), gen_{\subst{\rho''}\sEnv}([\rho''](\qualtype{p_{2}}{\VE})), \rho''}
 \]
 
 \subsection{elaborating type bindings}
@@ -389,12 +400,12 @@
 
 \[
 \cfrac
- {\begin{array}{c}
-  \Env, exp_1 \vdashE cexp_1,\qualtype{p_1}{\tau_1},\rho_1 \qquad \rho'_1 = \rho_1 \\
-  \subst{\rho'_1}\Env, exp_2 \vdashE cexp_2,\qualtype{p_2}{\tau_2},\rho_2 \qquad \rho'_2 = \compose{\rho_2}{\rho'_1} \\
-  \cdots \\
-  \subst{\rho'_{n-1}}\Env, exp_n \vdashE cexp_n,\qualtype{p_n}{\tau_n},\rho_n \qquad \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
-  \unifylist{\tau_0}{\tau_n}{\rho_{n+1}}  \qquad \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n} \\
+ {\begin{array}{cl}
+  & \rho'_0 = \Empty \\
+  \subst{\rho'_0}\Env, exp_1 \vdashE cexp_1,\qualtype{p_1}{\tau_1},\rho_1     & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
+  \multicolumn{2}{c}{\cdots} \\
+  \subst{\rho'_{n-1}}\Env, exp_n \vdashE cexp_n,\qualtype{p_n}{\tau_n},\rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
+  \unifylist{\tau_0}{\tau_n}{\rho_{n+1}}  & \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n} \\
   \end{array}
  }
  {\begin{array}{ll}
@@ -413,7 +424,7 @@
 						\end{array}\right.
 \]
 
-\section {Syntax of Pattern}
+\section {Pattern in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{pat}
@@ -431,10 +442,26 @@
     & | & \prodlhs{vid}\ \angled{\key{:}\ \prodlhs{type}}\ \key{as}\ \prodlhs{pat}  &\\
 \prodlhs{lab}
     & = & \prodlhs{vid}                                                             &\\
-    & | & int                                                                       &\\
-    
+    & | & int                                                                       &\\    
 \end{array}
 \]}
+
+\section {Pattern in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{corepat}
+    & = & \prodlhs{corevar}                                                         &\\        
+    & | & \prodlhs{corevar}\ \key{as}\ \prodlhs{corepat}  							&\\
+    & | & \vcon																		&\\
+    & | & \vcon\ \prodlhs{corepat}													&\\
+    & | & literal																	&\\
+    & | & \_                                                                        &\\
+    & | & (\overline{\prodlhs{corepat}})                  							&\\
+    & | & [\overline{\prodlhs{corepat}}]                  							&\\
+    & | & \braced{\overline{lab = corepat}} 										&\\
+\end{array}
+\]}
+
 
 \section {Elaboration of Pattern}
 \vspace{-25pt}
@@ -557,7 +584,7 @@
     vid=cpat, lab:\qualtype{\angled{[\rho]p_2\ \cup} p_1}{\angled{[\rho]}\tau_1}, \VE }
 \]
 
-\section {Syntax of Expression}
+\section {Expression in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{exp}
@@ -587,6 +614,26 @@
     & = & \prodlhs{pat}_1\ \key{$\Rightarrow$}\ \prodlhs{exp}_1\ \shortmid\ \cdots\ \shortmid\ \prodlhs{pat}_n\ \key{$\Rightarrow$}\ \prodlhs{exp}_n & \\
 \end{array}
 \]}
+
+\section {Expression in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{coreexp}
+    & = & \key{variable}\  (corevar, \overline\tau)             &\\ 
+    & | & \key{constructor}\ (\vcon,   \overline\tau)			&\\
+    & | & \key{constant}\ \tau									&\\
+    & | & \braced{\overline{lab = coreexp}}						&\\		 
+    & | & [\overline{coreexp}]									&\\
+    & | & coreexp\ coreexp										&\\
+    & | & \key{lambda}\ corepat\ coreexp						&\\ 
+    & | & \key{case}  \ coreexp\ \overline{(corepat,coreexp)}   &\\
+    & | & \key{let}\ coredec\ \key{in}\ coreexp\ \key{end}		&\\
+    & | & coreexp\ \key{;}\ coreexp								&\\
+    & | & coreexp\ \key{handle}\ coreexp						&\\
+    & | & \key{raise}\ coreexp									&\\
+\end{array}
+\]}
+
 \section {Elaboration of Expression}
 \vspace{-25pt}
 \begin{flushright}
