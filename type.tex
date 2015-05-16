@@ -11,7 +11,7 @@
 \cfoot{\thepage}
 \rfoot{\ccby}
 \renewcommand{\headrulewidth}{0.0pt}
-\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.0pt}
 
 \newcommand{\key}[1]{\textrm{\textbf{#1}}}
 \newcommand{\nbkey}[1]{\textrm{#1}}
@@ -46,6 +46,7 @@
 \newcommand{\eqnot}{\nequiv}
 
 \newcommand{\wildcard}{{\color{gray}\scriptstyle\textbf{*}}}
+\newcommand{\vect}[1]{\overline{#1}}
 
 \begin{document}
 
@@ -54,7 +55,7 @@
 \maketitle 
 \thispagestyle{fancy}
 
-\section{Syntax of type}
+\section{Type in Standard ML}
 \newcommand{\q}     {\textrm{'}}
 \newcommand{\Env}   {\textrm{E}}
 \newcommand{\vdashT}{\ \vdash_{\textrm{\tiny T}}\  }
@@ -62,8 +63,8 @@
 \[\begin{array}{lcll}
 type & = & \q a                                             & \\
      & | & \q\q a                                           & \\
-     & | & tycon\ \overline{type}              	            &\comment{constructor}\\
-     & | & \braced{\overline{\lab:type}}       		        &\comment{record type}\\
+     & | & tycon\ \vect{type}              	            	&\comment{constructor}\\
+     & | & \braced{\vect{\lab:type}}       		        	&\comment{record type}\\
 \end{array}\]
 
 \section{Type in Core-Lang}
@@ -71,19 +72,19 @@ type & = & \q a                                             & \\
 \begin{array}{lcll}
 \type
      & = & \alpha                                           & \\
-     & | & \tycon\ \overline\type              	            &\comment{constructor}\\
-     & | & \record{\overline{\lab:\type}}       		    &\comment{record type}\\
-     & | & \irecrd{\alpha}{[\overline{\lab:\type}]}         &\comment{incomplete record type}\\
-     & | & \overld{\alpha}{\type}{[\overline\scheme]}     	&\comment{overloading type}\\
+     & | & \tycon\ \vect\type              	            	&\comment{constructor}\\
+     & | & \record{\vect{\lab:\type}}       		    		&\comment{record type}\\
+     & | & \irecrd{\alpha}{[\vect{\lab:\type}]}         		&\comment{incomplete record type}\\
+     & | & \overld{\alpha}{\type}{[\vect\scheme]}     		&\comment{overloading type}\\
 \alpha 
      & = & \rigdvar{\alpha}^{\equality}                     &\comment{rigid type variable}\\
      & | & \flexvar{\alpha}                                 &\comment{flexible type variable}\\     
 \\
-\qualtype{\type_1}{\type_2} & &                             &\comment{qualified type} \\
-                            & &                             &\comment{$\type_1$ are types that must admit equality} \\
+\qualtype{\vect\type_1}{\type_2} & &                        &\comment{qualified type} \\
+                            & &                             &\comment{$\vect\type_1$ are types that must admit equality} \\
 \\     
 \scheme 
-     & = & \forall \overline{\alpha}\,.\,\qualtype{\type_1}{\type_2}
+     & = & \forall \vect{\alpha}\,.\,\qualtype{\vect\type_1}{\type_2}
                                                             &\\
 \\
 \equality
@@ -96,7 +97,7 @@ type & = & \q a                                             & \\
      & | & \ovldrefine{\alpha}{[\scheme]}               	&\comment{refine a overloading type}\\
 
 \tyfun
-     & = & \Lambda{\overline{\alpha}}\,.\,{\qualtype{\type_1}{\type_2}} 
+     & = & \Lambda{\vect{\alpha}}\,.\,{\qualtype{\vect\type_1}{\type_2}} 
                                                             &\comment{type function}\\
 \end{array}
 \]}
@@ -106,10 +107,10 @@ type & = & \q a                                             & \\
 \[\begin{array}{lcl}
 eq(\rigdvar{\alpha}^\equality) 						&=& \equality \\
 eq(\flexvar{\alpha})                                &=& \eqyes    \\
-eq(\tycon^\equality\ \overline\type) 				&=& \equality + eq(\overline\type) \\
-eq(\record{\overline{\lab:\type}})			        &=& eq(\overline\type)    \\
-eq(\irecrd{\alpha}{[\overline{\lab:\type}]})	    &=& eq(\overline\type)    \\
-eq(\overld{\alpha}{\type}{[\overline\scheme]})		&=& \eqnot                \\
+eq(\tycon^\equality\ \vect\type) 					&=& \equality + eq(\vect\type) \\
+eq(\record{\vect{\lab:\type}})			        	&=& eq(\vect\type)    \\
+eq(\irecrd{\alpha}{[\vect{\lab:\type}]})	    		&=& eq(\vect\type)    \\
+eq(\overld{\alpha}{\type}{[\vect\scheme]})			&=& \eqnot                \\
 eq(\type_1\ \type_2\ \cdots\ \type_n)			    &=& \sum_i^n eq(\type_i)  \\
 \end{array}\]
 \end{minipage}
@@ -123,8 +124,8 @@ eq(\type_1\ \type_2\ \cdots\ \type_n)			    &=& \sum_i^n eq(\type_i)  \\
 \end{minipage}
 
 \section {Substitution}
-\newcommand{\s}{\overline{\delta}}
-\newcommand{\ts}{\overline{\type}}
+\newcommand{\s}{\vect{\delta}}
+\newcommand{\ts}{\vect{\type}}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $\subst{\rho}{\type} \Rightarrow \type'$ }
@@ -134,12 +135,10 @@ eq(\type_1\ \type_2\ \cdots\ \type_n)			    &=& \sum_i^n eq(\type_i)  \\
 \subst{\tyvarsubst{\alpha}{\type_1}}{\alpha} & \Rightarrow & \type_1	 \\
 \subst{\tyvarsubst{\alpha}{\type_1}}{\tycon\ \ts} & \Rightarrow & \tycon\ \subst{\tyvarsubst{\alpha}{\type_1}}{\ts} \\
 \subst{\tyvarsubst{\alpha}{\type_1}}{\record{flds}}   & \Rightarrow & \record{\subst{\tyvarsubst{\alpha}{\type_1}}{flds}}   \\
-\subst{\tyvarsubst{\alpha}{\type_1}}{\overld{\alpha}{\type_2}{\s_2}} & \Rightarrow & \type_1 
-    \quad\ifclause{(\unify{\type_1}{\type_2}{\wildcard}) \wedge (\exists \delta \in \s_2. \type_1 \prec \delta)} \\
+\subst{\tyvarsubst{\alpha}{\type_1}}{\overld{\alpha}{\type_2}{\s_2}} & \Rightarrow & \type_1  \\
 \subst{\tyvarsubst{\alpha}{\type_1}}{\overld{\beta}{\type_2}{\s_2}} & \Rightarrow & 
     \overld{\beta}{\subst{\tyvarsubst{\alpha}{\type_1}}{\type_2}}{\s_2}  \\    
-\subst{\tyvarsubst{\alpha}{\type_1}}{\irecrd{\alpha}{flds}} & \Rightarrow & \type_1 
-    \quad\ifclause{(\type_1 = \record{flds'}) \wedge (flds \subseteq flds')} \\
+\subst{\tyvarsubst{\alpha}{\type_1}}{\irecrd{\alpha}{flds}} & \Rightarrow & \type_1  \\
 \subst{\tyvarsubst{\alpha}{\type_1}}{\irecrd{\beta}{flds}} & \Rightarrow &  
     \irecrd{\beta}{\subst{\tyvarsubst{\alpha}{\type_1}}{flds}} \\
  & & \\
@@ -160,7 +159,8 @@ eq(\type_1\ \type_2\ \cdots\ \type_n)			    &=& \sum_i^n eq(\type_i)  \\
 \subst{\irecextend{\alpha}{flds_1}}{\irecrd{\alpha}{flds_2}}& \Rightarrow & \irecrd{\alpha}{flds_1}\\
 \subst{\irecextend{\alpha}{flds_1}}{\irecrd{\beta}{flds_2}} & \Rightarrow & \irecrd{\alpha}{\subst{\irecextend{\alpha}{flds_1}}{flds_2}}\\
  & & \\
-\subst{\rho}{\qualtype{\type_1}{\type_2}}                   & \Rightarrow & \qualtype{\subst{\rho}{\type_1}}{\subst{\rho}{\type_2}} \\
+\subst{\rho}{\qualtype{\vect\type_1}{\type_2}}              & \Rightarrow & \qualtype{\subst{\rho}{\vect\type_1}}{\subst{\rho}{\type_2}} \\
+\subst{\rho}{\type_1\ \type_2\ \cdots\ \type_n} 			& \Rightarrow & \subst{\rho}\type_1\ \subst{\rho}\type_2\ \cdots \subst{\rho}\type_n \\
 \end{array}
 \]}
 
@@ -171,14 +171,16 @@ free({\tycon\ \ts})           & = & free(\ts)                 		&       \\
 free(\record{flds})           & = & free(flds)                      &       \\
 free({\overld{\alpha}{\type}{\s}}) & = & \braced{\alpha} \cup free(\type)    & \\
 free({\irecrd{\alpha}{flds}}) & = & \braced{\alpha} \cup free(flds) &       \\
-free(\qualtype{\type_1}{\type_2})
-                              & = & free(\type_1) \cup free(\type_2)&       \\
+free(\qualtype{\vect\type_1}{\type_2})
+                              & = & free(\vect\type_1) \cup free(\type_2)&       \\
+free(\type_1\ \type_2\ \cdots\ \type_n)
+							  & = & free(\type_1) \cup free(\type_2) \cdots \cup free(\type_n) & \\                           
 & & \\
-gen_{env}(\qualtype{\type_1}{\type_2})
-                              & = & \forall \overline{\alpha}. \qualtype{\type_1}{\type_2}
-                                                                    & \whereclause{\overline{\alpha} = free(\qualtype{\type_1}{\type_2}) - free(env)} \\
-inst(\forall \overline{\alpha}.\qualtype{\type_1}{\type_2})
-                              & = &[\rho]\qualtype{\type_1}{\type_2}& \whereclause{\rho = \braced{\alpha_i \mapsto \flexvar{\beta}_i \ |\ \flexvar{\beta}_i\ \textrm{is a fresh tyvar}}} \\
+gen_{env}(\qualtype{\vect\type_1}{\type_2})
+                              & = & \forall \vect{\alpha}. \qualtype{\vect\type_1}{\type_2}
+                                                                    & \whereclause{\vect{\alpha} = free(\qualtype{\type_1}{\type_2}) - free(env)} \\
+inst(\forall \vect{\alpha}.\qualtype{\vect\type_1}{\type_2})
+                              & = &[\rho]\qualtype{\vect\type_1}{\type_2}& \whereclause{\rho = \braced{\alpha_i \mapsto \flexvar{\beta}_i \ |\ \flexvar{\beta}_i\ \textrm{is a fresh tyvar}}} \\
 \end{array}\]}
 
 \section{Instance relationship}
@@ -259,31 +261,31 @@ inst(\forall \overline{\alpha}.\qualtype{\type_1}{\type_2})
 \section{Elaboration of types}
 \vspace{-25pt}
 \begin{flushright}
-\framebox{ $ \Env, type \vdashT \qualtype{\type_1}{\type_2}$ }
+\framebox{ $ \Env, type \vdashT \qualtype{\vect\type_1}{\type_2}$ }
 \end{flushright}
 \[
   \Env, \q a \vdashT \qualtype{}{\rigdvar{\alpha}^{\eqnot}}
 \]
 \[
-  \Env, \q\q a \vdashT \qualtype{\rigdvar{\alpha}^{\eqyes}}{\rigdvar{\alpha}^{\eqyes}}
+  \Env, \q\q a \vdashT \qualtype{\braced{\rigdvar{\alpha}^{\eqyes}}}{\rigdvar{\alpha}^{\eqyes}}
 \]
 \[
 \cfrac
  {tycon \mapsto (k, \tycon^\equality,\wildcard) \inTE \Env    \qquad
   \Env,type_i\vdash \qualtype{p_i}{\type_i}}
- {\Env, tycon\ \overline{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\tycon^\equality\ \overline{\type}}}
+ {\Env, tycon\ \vect{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\tycon^\equality\ \vect{\type}}}
 \]
 \[
 \cfrac
  {tycon \mapsto (k, \zeta,\wildcard) \inTE \Env    \qquad
   \Env,type_i\vdash \qualtype{p_i}{\type_i}}
- {\Env, tycon\ \overline{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\zeta\ \overline{\type}}}
+ {\Env, tycon\ \vect{type}^{(k)} \vdashT \qualtype{(\sum_{i} p_i)}{\zeta\ \vect{\type}}}
 \]
 
 \[
 \cfrac
  {\Env,type_i\vdash \qualtype{p_i}{\type_i}}
- {\Env, \braced{\overline{\lab:type}} \vdashT \qualtype{(\sum_{i} p_i)}{\record{\overline{\lab:\type}}}}
+ {\Env, \braced{\vect{\lab:type}} \vdashT \qualtype{(\sum_{i} p_i)}{\record{\vect{\lab:\type}}}}
 \]
 
 \end{document}
