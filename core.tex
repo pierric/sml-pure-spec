@@ -4,6 +4,7 @@
 \usepackage{xcolor}
 \usepackage{fancyhdr}
 \usepackage{ccicons}
+\usepackage{multirow}
 \hypersetup{colorlinks=true}
 \pagestyle{fancy}
 
@@ -102,6 +103,7 @@
 
 \newcommand{\vect}[1]{\overline{#1}}
 \newcommand{\optional}[1]{#1?}
+\newcommand{\TODO}{{\color{red}\rule{2ex}{1.5ex}}}
 
 \begin{document}
 
@@ -112,7 +114,7 @@
 
 \section{Declaration in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
-\begin{array}{lcrll}
+\begin{array}{lclll}
 \prodlhs{dec}
      & = & \key{val}  	  & \vect{tyvar} \quad \vect{pat = exp} \quad \vect{\key{rec}\ pat = \key{fn}\ match} &\\
      & | & \key{type} 	  & \vect{\prodlhs{typebind}}                                &\\
@@ -124,7 +126,7 @@
      & | & \key{fun}      & \vect{tyvar} \quad \vect{\prodlhs{funcbind}} &\\
      & | & \key{local}    & \prodlhs{$dec_1$} \ \key{in}\ \prodlhs{$dec_2$}     &\\
      & | & \key{open}     & \vect{vid}                          	&\\
-     & | & \prodlhs{$dec_1$} & \key{;}\quad \prodlhs{$dec_2$} &\\
+     & | & \multicolumn{2}{l}{\prodlhs{$dec_1$}\quad\key{;}\quad \prodlhs{$dec_2$}} &\\
      & | & \key{overload} & priority \quad \vect{tyvar} \quad vid_1:type=\vect{vid}&\\
      & | & \key{fixity}   & assoc\ \vect{vid}                      &\\
 \prodlhs{typebind} 
@@ -162,7 +164,8 @@
  {\vect{\alpha} = \vect{tyvar} 					       \qquad
   \Env,\vect{\alpha}, vb \vdash_\VB cdecs_1, \VE_1, \rho_1 \qquad
   [\rho_1]\Env,\vect{\alpha}, recvb \vdash_\VB cdecs_2, \VE_2, \rho_2}
- {\Env, \key{val}\ \vect{tyvar}\ vb\ recvb \vdashD \key{Val}\ (\vect\alpha,cdecs_1,cdecs_2), \VE_1+\VE_2, \compose{\rho_2}{\rho_1}}
+ {\Env, \key{val}\ \vect{tyvar}\ vb\ recvb \vdashD
+    \key{Val}\ (\vect\alpha,\subst{\rho_2}{cdecs_1},cdecs_2), \VE_1+\VE_2, \compose{\rho_2}{\rho_1}}
 \]
 
 \[
@@ -174,7 +177,8 @@
 \[
 \cfrac
  {(longtycon \mapsto (k, \tycon^\equality, cons)) \in^\sTE E }
- {\Env, \key{datatype}\ tycon = \key{datatype}\ longtycon \vdashD \Empty, \braced{tycon \mapsto (k, \tycon^\equality, cons)}^\sTE , \Empty}
+ {\Env, \key{datatype}\ tycon = \key{datatype}\ longtycon \vdashD 
+    \Empty, \braced{tycon \mapsto (k, \tycon^\equality, cons)}^\sTE , \Empty}
 \]
 
 \[
@@ -183,10 +187,10 @@
   \Env,tb_{i} \vdashT \wildcard,\TE_i,\wildcard   		     \qquad 
   (eqtycon,\wildcard)\Leftarrow \MaximizeEq(\vect{db})   \qquad
   \Env,eqtycon,db_{j}\vdash_{\DB_1} \TE_j                    \\
-  \Env+\sum_i{\TE_i}+\sum_j{\TE_j}, db_k \vdash_{\DB_2} cdec_k, \VE_k
+  \Env+\sum_i{\TE_i}+\sum_j{\TE_j}, db_k \vdash_{\DB_2} cdb_k, \VE_k
   \end{array} }
  {\Env, \key{datatype}\ \vect{db}\ \key{withtype}\ \vect{tb} \vdashD 
- 	\key{Datatype}\ \vect{cdec}, \sum_{j}\TE_j+\sum_{k}\VE_k , \Empty}
+ 	\key{Datatype}\ \vect{cdb}, \sum_{j}\TE_j+\sum_{k}\VE_k , \Empty}
 \]
 
 \[
@@ -194,17 +198,17 @@
  {\begin{array}{c}
   (eqtycon,\wildcard)\Leftarrow \MaximizeEq(\vect{db})						 \qquad
    \Env,eqtycon,db_{i} \vdash_{\DB_1} \TE_i 									 \\ 
-   \Env+\sum_i{\TE_i},db_j \vdash_{\DB_2} cdec_j,\VE_j       					 \\
-  \Env+\sum_i{\TE_i}+\sum_j{\VE_j}, dec \vdash_{\Dec} cdec_0, \TE_0,\VE_0,\rho_0 \\
+   \Env+\sum_i{\TE_i},db_j \vdash_{\DB_2} cdb_j,\VE_j       					 \\
+  \Env+\sum_i{\TE_i}+\sum_j{\VE_j}, dec \vdash_{\Dec} cdec, \TE_0,\VE_0,\rho_0 \\
   \end{array}}
- {\Env, \key{abstype}\ \vect{db}\ \key{with}\ dec \vdashD \sum_{j}cdec_j+cdec_0, \sum_{j}\TE_j+\TE_0+\VE_0, \rho_0}
+ {\Env, \key{abstype}\ \vect{db}\ \key{with}\ dec \vdashD \braced{\key{Datatype}\ \vect{cdb}}+cdec, \sum_{j}\TE_j+\TE_0+\VE_0, \rho_0}
 \]
 
 \[
 \cfrac
  {(longvid_i \mapsto (\vcon_i, \qualtype{p_i}{\tau_i}, \VKE)) \in^\VE \Env }
  {\begin{array}{ll}
-  \Env, \key{exception}\ \vect{vid = longvid} \vdashD & \key{exception}\ \vect{\vcon}, \\
+  \Env, \key{exception}\ \vect{vid = longvid} \vdashD & \key{Exception}\ (\vect{\vcon},\TODO), \\
   & \sum_i{\braced{vid \mapsto (\vcon_i, \qualtype{p_i}{\tau_i}, \VKE)}}^\VE , \Empty \\
   \end{array}}
 \]
@@ -213,7 +217,7 @@
 \cfrac
  {\angled{\Env,type_i \vdashT \qualtype{p_i}{\tau_i}} \qquad \vcon_i\Leftarrow\corenew{vcon}}
  {\begin{array}{ll}
-  \Env, \key{exception}\ \vect{vid \angled{\key{of}\ type}} \vdashD & \key{exception}\ \vect{\vcon}, \\
+  \Env, \key{exception}\ \vect{vid \angled{\key{of}\ type}} \vdashD & \key{Exception}\ (\vect{\vcon},\TODO), \\
   & \sum_i{\braced{vid \mapsto (\vcon_i, \qualtype{\angled{p_i}}{\angled{\tau_i \to} exn, \VKE)}}}^\VE , \\
   & \Empty \\
   \end{array}}
@@ -222,26 +226,26 @@
 \[
 \cfrac
  {\begin{array}{c}
-  \vect{\alpha} = \vect{tyvar}                                      \qquad
-  \vect{\alpha} \cap free(E) = \emptyset                                \qquad
-  v_i\Leftarrow\corenew{var}			                                    \\
-  \Env,fb_i\vdash_{\sFB_1} fn_i, cpats_i, \qualtype{p_i}{\tau_i},\VE_i      \\
-  \Env_0 = \Env + \sum_i\braced{fn_i \mapsto (v_i, \qualtype{p_i}{\tau_i}, \VKV)} + \vect{\alpha} \qquad
+  \vect{\alpha} = \vect{tyvar}                                                  \qquad
+  \vect{\alpha} \cap free(E) = \emptyset                                        \qquad
+  cvar_i\Leftarrow\corenew{var}			                                        \\
+  \Env,fb_i\vdash_{\sFB_1} fn_i, cpats_i, \qualtype{p_i}{\tau_i},\VE_i     \\
+  \Env_0 = \Env + \sum_i\braced{fn_i \mapsto (cvar_i, \qualtype{p_i}{\tau_i}, \VKV)} + \vect{\alpha} \qquad
   \rho'_0 = \Empty \\
   \begin{array}{rlll}
   \subst{\rho'_0}{(\Env_0 + \VE_1)},& cpats_1, \qualtype{p_1}{\tau_1}, fb_1 &
-    \vdash_{\sFB_2} cexp_1, \qualtype{p_1'}{\tau_1'}, \rho_1
+    \vdash_{\sFB_2} clam_1, \qualtype{p_1'}{\tau_1'}, \rho_1
   & \rho'_1 = \compose{\rho_1}{\rho'_0}  \\
   \multicolumn{4}{c}{\cdots} \\
   \subst{\rho'_{n-1}}{(\Env_0 + \VE_n)},& cpats_n, \qualtype{p_n}{\tau_n}, fb_n &
-    \vdash_{\sFB_2} cexp_n, \qualtype{p_n'}{\tau_n'}, \rho_n
+    \vdash_{\sFB_2} clam_n, \qualtype{p_n'}{\tau_n'}, \rho_n
   & \rho'_n = \compose{\rho_n}{\rho'_{n-1}}  \\  
   \end{array}
   \end{array}}
  {\begin{array}{ll}
   \Env, \key{fun}\ \vect{tyvar}^{(n)}\ \vect{fb} \vdashD
-  & \key{fun}\ \sum_i \braced{(v_i, cexp_i)}, \\
-  & \sum_i\braced{fn_i \mapsto (v_i, gen_{\subst{\rho'_n}\sEnv}(\subst{\rho'_n}\qualtype{p_i'}{\tau_i'}),\VKV)}, \\
+  & \key{Fun}\ \vect{(\vect\alpha, cvar, clam)}, \\
+  & \sum_i\braced{fn_i \mapsto (cvar_i, gen_{\subst{\rho'_n}\sEnv}(\subst{\rho'_n}\qualtype{p_i'}{\tau_i'}),\VKV)}, \\
   & \rho'_n \\
   \end{array}}
 \]
@@ -313,14 +317,14 @@
  {\begin{array}{cl}
    & \rho'_0 = \Empty \\
    \Env,\vect{tyvar}, (pat, match)_1 \vdash_{\sVB'}
-        (cpat, cexp)_1, \VE_1, \rho_1 & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
+        (cvar, clam)_1, \VE_1, \rho_1 & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
    \multicolumn{2}{c}{\cdots} \\
    \subst{\rho'_{n-1}}\Env,\vect{tyvar}, (pat,match)_n \vdash_{\sVB'}
-        (cpat, cexp)_n, \VE_n, \rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
+        (cvar, clam)_n, \VE_n, \rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
    \braced{\VE_i}\ \nbkey{disjoints}
   \end{array}}
  {\Env,\vect{tyvar}, \key{rec}\ \vect{pat = \key{fn}\ match} \vdash_\sVB
-    \vect{cpat = cexp}, \sum_i\VE_i, \rho'_n}
+    \vect{cvar = clam}, \sum_i\VE_i, \rho'_n}
 \]
 
 \[
@@ -328,14 +332,14 @@
  {\begin{array}{c}
    \vect{\alpha} = \vect{tyvar} \qquad 
    \vect{\alpha} \cap free(\Env) = \emptyset \\
-   \Env,pat \vdashP cpat, \VE, \qualtype{p_{1}}{\tau_{1}} \qquad
-   \Env+\vect{\alpha}+\VE, match \vdash_\Match cexp, \qualtype{p_2}{\tau_2}, \rho \\
+   \Env,pat \vdashP \key{Var}\ cvar, \VE, \qualtype{p_{1}}{\tau_{1}} \qquad
+   \Env+\vect{\alpha}+\VE, match \vdash_\Match clam, \qualtype{p_2}{\tau_2}, \rho \\
    \unify{[\rho]\tau_{1}}{\tau_{2}}{\rho'} \qquad 
    \rho''=\compose{\rho'}{\rho}				 \qquad   
     [\rho''](p_{1} \cup p_{2})\ \nbkey{holds} \\
   \end{array}}
  { \Env,\vect{tyvar}, (pat, match) \vdash_{\sVB'}
-   (cpat, cexp), gen_{\subst{\rho''}\sEnv}([\rho''](\qualtype{p_{2}}{\VE})), \rho''}
+   (cvar, clam), gen_{\subst{\rho''}\sEnv}([\rho''](\qualtype{p_{2}}{\VE})), \rho''}
 \]
 
 \subsection{elaborating type bindings}
@@ -380,7 +384,7 @@
   \end{array} }
  {\begin{array}{ll}
   \Env,\vect{tyvar}^{(k)}\ tycon = \vect{vid\ \angled{\key{of}\ type}} \vdash_{\sDB_2} 
-  & (\vect\alpha, \tycon, \vect{(\vcon, )}), \\
+  & (\vect\alpha, \tycon, \vect{(\vcon,\TODO)}), \\
   & \sum_i\braced{con_i \mapsto (\vcon_i,\delta_i,\VKC)}^\sVE \\
   \end{array}}
 \]
@@ -389,33 +393,41 @@
 \[
 \cfrac
  {\begin{array}{c}
-  fn_1=\cdots=fn_n \qquad 
-  \Env,pat_i  \vdashP  cpat_i,\VE_i,\qualtype{p_i}{\tau_i} \qquad
-  \Env,type_i \vdash_\sType \qualtype{p_i'}{\tau_i'}            \\
-  \unifylist{\tau_1}{\tau_n}{\rho}          \qquad
-  \unifylist{\tau_1'}{\tau_n'}{\rho'}       \\
-  p = [\rho]\sum_i p_i + [\rho']\sum_i p_i' \qquad
+  fn_1=\cdots=fn_n \qquad arity_1=\cdots=arity_n                                \\
+  \Env,pat_{i,j}  \vdashP  cpat_{i,j},\VE_{i,j},\qualtype{p_{i,j}}{\tau_{i,j}}  \qquad
+  \Env,type_i \vdash_\sType \qualtype{p_i'}{\tau_i'}                            \\
+  \unifylist{\vect{\tau_1}}{\vect{\tau_n}}{\rho}                                \qquad
+  \unifylist{\tau_1'}{\tau_n'}{\rho'}                                           \\
+  p = [\rho]\sum_i\sum_j p_{i,j} + [\rho']\sum_i p_i' \qquad
   \tau = [\rho]\tau\to[\rho']\tau'          \qquad
-  \VE = \subst{\rho}{\sum_i \VE_i}
+  \VE = \subst{\rho}{\sum_i \sum_j \VE_{i,j}}
   \end{array}}
- {\Env, \vect{fn\ pat:type = exp} \vdash_{\sFB_1} 
-  fn_1, \vect{cpat},\qualtype{p}{\tau},\VE}
+ {\Env, \vect{fn\ \vect{pat}^{(arity)}:type = exp} \vdash_{\sFB_1} 
+  fn_1, arity_1, \vect{\vect{cpat}},\qualtype{p}{\tau},\VE}
 \]
 
 \[
 \cfrac
- {\begin{array}{cl}
-  & \rho'_0 = \Empty \\
-  \subst{\rho'_0}\Env, exp_1 \vdashE cexp_1,\qualtype{p_1}{\tau_1},\rho_1     & \rho'_1 = \compose{\rho_1}{\rho'_0} \\
-  \multicolumn{2}{c}{\cdots} \\
-  \subst{\rho'_{n-1}}\Env, exp_n \vdashE cexp_n,\qualtype{p_n}{\tau_n},\rho_n & \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
-  \unifylist{\tau_0}{\tau_n}{\rho_{n+1}}  & \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n} \\
+ {\begin{array}{lc}
+  \rho'_0 = \Empty 
+  & \subst{\rho'_0}\Env, exp_1 \vdashE cexp_1,\qualtype{p_1}{\tau_1},\rho_1 \\
+  \rho'_1 = \compose{\rho_1}{\rho'_0} & \multirow{2}{*}{\vdots} \\
+  \multirow{2}{*}{\qquad\vdots}  &  \\
+  & \subst{\rho'_{n-1}}\Env, exp_n \vdashE cexp_n,\qualtype{p_n}{\tau_n},\rho_n \\
+  \rho'_n = \compose{\rho_n}{\rho'_{n-1}}
+  & \unifylist{\subst{\rho'_n}{\tau_0}}{\subst{\rho'_n}{\tau_n}}{\rho_{n+1}} \\ 
+  \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n}
+  & \vect{cvar} \Leftarrow \vect{\corenew{var}}^{(k)} \\
   \end{array}
  }
  {\begin{array}{ll}
-  \Env,\vect{cpat},\qualtype{p}{\tau\to\tau_0},\vect{fn\ pat:type = exp} \vdash_{\sFB_2}
-   & \key{lambda}\ v\ (\key{case}\ v\ \vect{(cpat, cexp)}), \\
-   & \subst{\rho'_{n+1}}{\qualtype{(p+\sum_i p_i)}{\tau\to\tau_0}}, \\
+  \Env,\vect{\vect{cpat}}^{(n,k)},\qualtype{p}{\tau\to\tau_0},\vect{fn\ \wildcard = exp}^{(n)} \vdash_{\sFB_2}
+   & \lam\ (cvar_1, \TODO).                     \\
+   & \hspace{2ex}\lam\ \cdots                   \\
+   & \hspace{4ex}\lam\ (cvar_n, \TODO).         \\
+   & \hspace{6ex}\key{Case}\ (\ \vect{cvar},    \\
+   & \hspace{14ex}\vect{(\vect{cpat}, cexp)}\ ),\\
+   & \subst{\rho'_{n+1}}{\qualtype{p+\sum_i p_i}{\tau\to\tau_0}}, \\
    & \rho'_{n+1} \\
   \end{array}}
 \]
@@ -458,8 +470,8 @@
     & | & \key{As}          & (\prodlhs{corevar},\prodlhs{corepat})  				\\
     & | & \key{Constructor} & (\vcon,\vect\tau,\optional{corepat})					\\
     & | & \key{Constant}	& const\_literal										\\
-    & | & [\vect{\prodlhs{corepat}}]                  								\\
-    & | & \braced{\vect{lab = corepat}} 											\\
+    & | & \key{List}        & \vect{\prodlhs{corepat}}								\\
+    & | & \key{Record}      & \vect{lab = \prodlhs{corepat}} 		                \\
     & | & \_                                                                        \\
 \end{array}
 \]}
@@ -494,8 +506,8 @@
 \[
 \cfrac
  {\tau \Leftarrow \corenew{tyvar}   \qquad
-  v    \Leftarrow \corenew{var}}
- {\Env, x \vdashP v, \qualtype{}{\tau}, \braced{x \mapsto (v, \qualtype{}{\tau}, \VKV)}}
+  cvar \Leftarrow \corenew{var}}
+ {\Env, x \vdashP \key{Var}\ cvar, \qualtype{}{\tau}, \braced{x \mapsto (cvar, \qualtype{}{\tau}, \VKV)}}
 \]
 
 \[
@@ -503,19 +515,23 @@
  {\begin{array}{c}
   \Env,type \vdashT \qualtype{p_1}{\tau_1}              \qquad
   \Env,pat \vdashP cpat,\qualtype{p_2}{\tau_2}, \VE     \\
-  v   \Leftarrow \corenew{var}                          \qquad  
+  cvar \Leftarrow \corenew{var}                          \qquad  
   \unify{\tau_1}{\tau_2}{\rho}                          \qquad
   p = p_1 \cup p_2
   \end{array}}
- {\Env, x\ \key{:}\ type\ \key{as}\ pat \vdashP 
-    v\ \key(as)\ cpat, [\rho](\qualtype{p}{\tau_1}), \braced{x \mapsto (v, [\rho](\qualtype{p}{\tau_1}), \VKV)} + [\rho]\VE}
+ {\begin{array}{ll}
+   \Env, x\ \key{:}\ type\ \key{as}\ pat \vdashP 
+    & \key{As}\ (cvar, cpat), [\rho](\qualtype{p}{\tau_1}), \\
+    & \braced{x \mapsto (cvar, [\rho](\qualtype{p}{\tau_1}), \VKV)} + [\rho]\VE
+   \end{array}}
 \]
 
 \[
 \cfrac
  {\alpha \Leftarrow \corenew{tyvar} \qquad
   \beta  \Leftarrow \corenew{tyvar}}
- {\Env, \litchar \vdashP (\alpha,\litchar), \qualtype{\beta}{\overld{\alpha}{\beta}{[\Char{8},\Char{16},\Char{32}]}}, \Empty}
+ {\Env, \litchar \vdashP 
+    \key{Constant}\ (\alpha,\litchar), \qualtype{\beta}{\overld{\alpha}{\beta}{[\Char{8},\Char{16},\Char{32}]}}, \Empty}
 \]
 
 \[
@@ -523,7 +539,7 @@
  {longvid \mapsto (\vcon, \delta, \VKC) \in^\VE \Env \qquad
   \qualtype{p}{\tau} = inst(\delta)    \qquad
   \notunifiable{\tau}{\wildcard \to \wildcard} }
- {\Env, longvid \vdashP \vcon, \qualtype{p}{\tau}, \Empty}
+ {\Env, longvid \vdashP \key{Constructor}\ (\vcon, \TODO), \qualtype{p}{\tau}, \Empty}
 \]
 
 \[
@@ -534,7 +550,7 @@
   \Env,pat \vdashP cpat, \qualtype{p_2}{\tau_3},\VE      \qquad
   \unify{\tau_1}{\tau_3}{\rho}                           \\
   \end{array}}
- {\Env, longvid\ pat \vdashP \vcon\ cpat, [\rho](\qualtype{p_1 \cup p_2}{\tau_2}), [\rho]\VE}
+ {\Env, longvid\ pat \vdashP \key{Constructor}\ (\vcon, \TODO, cpat), [\rho](\qualtype{p_1 \cup p_2}{\tau_2}), [\rho]\VE}
 \]
 
 \[
@@ -551,7 +567,7 @@
   \unifylist{\tau_1}{\tau_n}{\rho}                                  \qquad
   \braced{\VE_i}\ \textrm{does not overlap}}
  {\Env, [\vect{pat}] \vdashP
-    [\vect{cpat}], [\rho](\qualtype{\sum p_i}{\tau_1\ \textrm{list}}), \sum_i\VE_i}
+    \key{List}\ \vect{cpat}, [\rho](\qualtype{\sum p_i}{\tau_1\ \textrm{list}}), \sum_i\VE_i}
 \]
 
 \[
@@ -559,7 +575,7 @@
  {\Env,\prodlhs{fld}_i \vdashFLD cfld_i,\qualtype{p_i}{\tau_i},\VE_i \qquad
   \braced{\VE_i}\ \textrm{does not overlap}}
  {\Env, \braced{\vect{fld}} \vdashP
-    \braced{\vect{cfld}}, \qualtype{\sum_i p_i}{\record{\tau_1,\tau_2,\cdots,\tau_n}}, \sum_i\VE_i}
+    \key{Record}\ \vect{cfld}, \qualtype{\sum_i p_i}{\record{\tau_1,\tau_2,\cdots,\tau_n}}, \sum_i\VE_i}
 \]
 
 \[
@@ -568,7 +584,7 @@
   \alpha \Leftarrow \corenew{tyvar}                      \qquad
   \braced{\VE_i}\ \textrm{does not overlap}}
  {\Env, \braced{\vect{fld},\key{...}} \vdashP
-    \braced{\vect{cfld}}, \qualtype{\sum_i p_i}{\irecrd{\alpha}{[\tau_1,\tau_2,\cdots,\tau_n]}}, \sum_i\VE_i}
+    \key{Record}\ \vect{cfld}, \qualtype{\sum_i p_i}{\irecrd{\alpha}{[\tau_1,\tau_2,\cdots,\tau_n]}}, \sum_i\VE_i}
 \]
 
 \[
@@ -625,18 +641,18 @@
 \prodlhs{coreexpnode}
     & = & \key{App}  & (coreexp, coreexp)						\\
     & | & \key{Case} & (coreexp, \vect{(corepat,coreexp)})   	\\
-    & | & \key{Constructor} & \vect{(\vcon, \tau)}				\\
+    & | & \key{Constructor} & (\vcon, \vect\tau)				\\
     & | & \key{Constant}	& (\tau, const\_literal)			\\
     & | & \key{Var}  		& (corevar, \vect\tau)     		    \\ 
     & | & \key{Lambda}  	& corelambda						\\ 
     & | & \key{Let}			& (\vect{coredec}, coreexp)			\\
-    & | & \key{Handle}		& (coreexp, (corevar,\tau), coreexp)\\
+    & | & \key{Handle}		& (coreexp, corelambda)             \\
     & | & \key{Raise}		& coreexp							\\
     & | & \key{Record}		& \vect{(lab, coreexp)} 		    \\		 
     & | & \key{List}		& \vect{coreexp}					\\
     & | & \multicolumn{2}{l}{coreexp\ \key{;}\ coreexp}			\\
 \prodlhs{corelambda}
-	& = & \multicolumn{2}{l}{\lam\ (corevar, \vect\tau).\ coreexp} \\
+	& = & \multicolumn{2}{l}{\lam\ (corevar, \tau).\ coreexp} \\
 \end{array}
 \]}
 
@@ -669,40 +685,14 @@
 \cfrac
  {\begin{array}{c}
   \Env,exp \vdashE cexp,\wildcard,\qualtype{p_1}{\tau_1},\rho_1                         \\
-  \subst{\rho_1}\Env, match \vdashM clambda, \qualtype{p_2}{\tau_2\to\tau_3}, \rho_2    \\
+  \subst{\rho_1}\Env, match \vdashM clam, \qualtype{p_2}{\tau_2\to\tau_3}, \rho_2    \\
   \unify{(\subst{\rho_2}\tau_1,\tau_2)}{(\tau_3, exn)}{\rho_3}                          \\
   \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}                                     \\
   \end{array}}
  {\Env,exp\ \key{handle}\ match \vdashE
-     cexp\ \key{handle}\ clambda, \xp,
+     \key{Handle}\ (cexp, clam), \xp,
      \subst{\rho}{\qualtype{(p_1 + p_2)}{\tau_1}},
      \rho}
-\]
-
-\[
-\cfrac
- {\begin{array}{c}
-  \Env, exp_1        \vdashE cexp_1,\wildcard,\qualtype{p_1}{\tau_1},\rho_1 \qquad \\
-  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2,\wildcard,\qualtype{p_2}{\tau_2},\rho_2   \\
-  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3} \qquad  \\
-  \end{array}}
- {\Env, exp_1\ \key{andalso}\ exp_2 \vdashE 
-    cexp_1\ \key{andalso}\ cexp_2, \xp, 
-    \qualtype{p_1 + p_2}{bool},
-    \compose{\rho_3}{\compose{\rho_2}{\rho_1}}}
-\]
-
-\[
-\cfrac
- {\begin{array}{c}
-  \Env, exp_1        \vdashE cexp_1,\wildcard,\qualtype{p_1}{\tau_1},\rho_1       \\
-  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2,\wildcard,\qualtype{p_2}{\tau_2},\rho_2 \\
-  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3}
-  \end{array} }
- {\Env, exp_1\ \key{orelse}\ exp_2 \vdashE
-     cexp_1\ \key{orelse}\ cexp_2, \xp,
-     \qualtype{p_1 + p_2}{bool},
-     \compose{\rho_3}{\compose{\rho_2}{\rho_1}}}
 \]
 
 \[
@@ -718,61 +708,29 @@
 
 \[
 \cfrac
- {\Env,match \vdashM clambda,\qualtype{p}{\tau_1\to\tau_2},\rho_1}
- {\Env, \key{fn}\ match \vdashE clambda, \nxp, \qualtype{p}{\tau_1\to\tau_2}, \rho_1}
+ {\Env,match \vdashM clam,\qualtype{p}{\tau_1\to\tau_2},\rho_1}
+ {\Env, \key{fn}\ match \vdashE clam, \nxp, \qualtype{p}{\tau_1\to\tau_2}, \rho_1}
 \]
 
 \[
 \cfrac
  {\begin{array}{c}
   \Env,exp \vdashE cexp, \wildcard, \qualtype{p_1}{\tau_1}, \rho_1    \\
-  \subst{\rho_1}\Env,match \vdashM clambda, \qualtype{p_2}{\tau_2\to\tau_3},\rho_2        \\
+  \subst{\rho_1}\Env,match \vdashM clam, \qualtype{p_2}{\tau_2\to\tau_3},\rho_2        \\
   \unify{\subst{\rho_2}\tau_1}{\tau_2}{\rho_3}                                            \\
   \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}
   \end{array}}
  {\Env,\key{case}\ exp\ \key{of}\ match \vdashE 
-    clambda\ cexp, \xp,
+    \key{App}\ (\key{Lambda}\ clam, cexp), \xp,
     [\rho](\qualtype{p_1 + p_2}{\tau_3)},
     \rho}
 \]
 
 \[
 \cfrac
- {\begin{array}{c}
-  \Env,exp_1 \vdashE cexp_1, \wildcard, \qualtype{p_1}{\tau_1}, \rho_1                             \\ 
-  \subst{\rho_1}\Env, exp_2 \vdashE cexp_2, \wildcard, \qualtype{p_2}{\tau_2}, \rho_2              \\
-  {[\compose{\rho_2}{\rho_1}]\Env,exp_3 \vdashE cexp_3, \wildcard, \qualtype{p_3}{\tau_3}, \rho_3} \\
-  \unify{(\subst{\compose\rho_3\rho_2}\tau_1,\subst{\rho_3}\tau_2)}{(bool,\tau_3)}{\rho_4}         \\
-  \rho = \compose{\rho_4}{\compose{\rho_3}{\compose{\rho_2}{\rho_1}}}                              \\
-  \end{array}}
- {\begin{array}{ll}
-    \Env, \key{if}\ exp_1\ \key{then}\ exp_2\ \key{else}\ exp_3 \vdashE 
-    & \key{if}\ cexp_1\ \key{then}\ cexp_3\ \key{else}\ cexp_3,  \xp 	   \\
-    & [\rho](\qualtype{p_1 + p_2 + p_3}{\tau_2)},                  \\
-    & \rho  \\
-   \end{array}}
-\]
-
-\[
-\cfrac
  {\Env,exp \vdashE cexp,\wildcard, \qualtype{p}{\tau_1},\rho_1 \qquad 
   \unify{\tau_1}{exn}{\rho_2} \qquad \tau_2\Rightarrow\corenew{tyvar}}
- {\Env, \key{raise}\ exp \vdashE \key{raise}\ cexp, \xp, \qualtype{([\rho_2]p)}{\tau_2}, \compose{\rho_2}{\rho_1}}
-\]
-
-\[
-\cfrac
- {\begin{array}{c}
-  \Env, exp_1 \vdashE cexp_1, \wildcard,\qualtype{p_1}{\tau_1},\rho_1                 \\
-  \subst{\rho_1}\Env, exp_2 \vdashE cexp_2, \wildcard,\qualtype{p_2}{\tau_2},\rho_2   \\
-  \unify{(\subst{\rho_2}\tau_1,\tau_2)}{(bool,unit)}{\rho_3} 
-  \end{array}}
- {\begin{array}{ll}
-  \Env,\key{while}\ exp_1\ \key{do}\ exp_2 \vdashE 
-    & \key{while}\ cexp_1\ \key{do}\ cexp_2, \xp, \\
-    & [\compose{\rho_3}{\rho_2}]\qualtype{(p_1 + p_2)}{unit}, \\
-    & \compose{\rho_3}{\compose{\rho_2}{\rho_1}} \\
-  \end{array}}
+ {\Env, \key{raise}\ exp \vdashE \key{Raise}\ cexp, \xp, \qualtype{([\rho_2]p)}{\tau_2}, \compose{\rho_2}{\rho_1}}
 \]
 
 \[
@@ -789,10 +747,87 @@
             \end{array}\right.
   \end{array}}
  {\Env,aexp_1\ aexp_2 \vdashE
-     cexp_1\ cexp_2,\iota_3,
+     \key{App}\ (cexp_1, cexp_2),\iota_3,
     \subst{\rho}{\qualtype{p_1 + p_2}{\tau_3}},
     \rho}
 \]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env, exp_1        \vdashE cexp_1,\wildcard,\qualtype{p_1}{\tau_1},\rho_1 \qquad \\
+  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2,\wildcard,\qualtype{p_2}{\tau_2},\rho_2   \\
+  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3} \qquad  \\
+  \end{array}}
+ {\begin{array}{ll}
+  \Env, exp_1\ \key{andalso}\ exp_2 \vdashE 
+    & \key{Andalso}\ (cexp_1, cexp_2), \xp, \\
+    & \qualtype{p_1 + p_2}{bool},          \\
+    & \compose{\rho_3}{\compose{\rho_2}{\rho_1}} \\
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env, exp_1        \vdashE cexp_1,\wildcard,\qualtype{p_1}{\tau_1},\rho_1       \\
+  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2,\wildcard,\qualtype{p_2}{\tau_2},\rho_2 \\
+  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3}
+  \end{array} }
+ {\begin{array}{ll}
+  \Env, exp_1\ \key{orelse}\ exp_2 \vdashE
+     & \key{Orelse}\ (cexp_1, cexp_2), \xp,     \\
+     & \qualtype{p_1 + p_2}{bool},              \\
+     & \compose{\rho_3}{\compose{\rho_2}{\rho_1}}
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env,exp_1 \vdashE cexp_1, \wildcard, \qualtype{p_1}{\tau_1}, \rho_1                             \\ 
+  \subst{\rho_1}\Env, exp_2 \vdashE cexp_2, \wildcard, \qualtype{p_2}{\tau_2}, \rho_2              \\
+  {[\compose{\rho_2}{\rho_1}]\Env,exp_3 \vdashE cexp_3, \wildcard, \qualtype{p_3}{\tau_3}, \rho_3} \\
+  \unify{(\subst{\compose\rho_3\rho_2}\tau_1,\subst{\rho_3}\tau_2)}{(bool,\tau_3)}{\rho_4}         \\
+  \rho = \compose{\rho_4}{\compose{\rho_3}{\compose{\rho_2}{\rho_1}}}                              \\
+  \end{array}}
+ {\begin{array}{ll}
+    \Env, \key{if}\ exp_1\ \key{then}\ exp_2\ \key{else}\ exp_3 \vdashE 
+    & \key{If}\ (cexp_1, cexp_2, cexp_3),  \xp 	                    \\
+    & [\rho](\qualtype{p_1 + p_2 + p_3}{\tau_2)},                   \\
+    & \rho  \\
+   \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env, exp_1 \vdashE cexp_1, \wildcard,\qualtype{p_1}{\tau_1},\rho_1                 \\
+  \subst{\rho_1}\Env, exp_2 \vdashE cexp_2, \wildcard,\qualtype{p_2}{\tau_2},\rho_2   \\
+  \unify{(\subst{\rho_2}\tau_1,\tau_2)}{(bool,unit)}{\rho_3} 
+  \end{array}}
+ {\begin{array}{ll}
+  \Env,\key{while}\ exp_1\ \key{do}\ exp_2 \vdashE 
+    & \key{While}\ (cexp_1, cexp_2), \xp, \\
+    & [\compose{\rho_3}{\rho_2}]\qualtype{(p_1 + p_2)}{unit}, \\
+    & \compose{\rho_3}{\compose{\rho_2}{\rho_1}} \\
+  \end{array}}
+\]
+
+\subsubsection {derived forms of expression}
+\[\begin{array}{ll}
+  \key{If}\ (cexp_1, cexp_2, cexp_3) = & \key{Case}\ (cexp_1, \\
+                                       & \hspace{7ex}\braced{(true, cexp_2), (false, cexp_3)})  \\
+\key{Andalso}\ (cexp_1, cexp_2)\     = & \key{If}\ (cexp_1, cexp_2, false) \\
+\key{Orelse} \ (cexp_1, cexp_2)\     = & \key{If}\ (cexp_1, true, exp_2)   \\
+\key{While}  \ (cexp_1, cexp_2)\     = & \key{Let}\  (\ \braced{\key{Fun}\ (\emptyset, v, \lam\ (v',unit).\\
+                                       & \hspace{20ex}\key{If}\ (cexp_1, \\
+                                       & \hspace{24ex} cexp_2;\key{App}\ (v, ()) , \\
+                                       & \hspace{24ex} ()))} \\
+                                       & \hspace{5ex},\ \key{App}\ (v,())\ ) \\
+                                       & \whereclause{\textrm{$v$ and $v'$ are fresh corevars.}}
+\end{array}\]
+
 
 \subsection {elaborating atomic expression}
 
@@ -802,13 +837,13 @@
   longvid \mapsto (\vcon, \delta, \VKC) \in^\VE \Env \qquad 
   \qualtype{p}{\tau} \Leftarrow inst(\delta) \\
  }
- {\Env, longvid \vdashAE (\vcon, args(\tau)), \xpc, \qualtype{p}{\tau}, \Empty}
+ {\Env, longvid \vdashAE \key{Constructor}\ (\vcon, args(\tau)), \xpc, \qualtype{p}{\tau}, \Empty}
 \]
 
 \[
 \cfrac
  {longvid \mapsto (\vcon, \qualtype{p}{\tau}, \VKE) \in^\VE \Env}
- {\Env, longvid \vdashAE (\vcon, args(\tau)), \xp, \qualtype{p}{\tau}, \Empty}
+ {\Env, longvid \vdashAE \key{Constructor}\ (\vcon, args(\tau)), \xp, \qualtype{p}{\tau}, \Empty}
 \]
 
 \[
@@ -816,14 +851,14 @@
  {longvid \mapsto (cvar, \delta, \VKV) \in^\VE \Env \qquad
   \qualtype{p}{\tau} \Leftarrow inst(\delta)
   }
- {\Env, longvid \vdashAE (cvar, args(\tau)), \nxp, \qualtype{p}{\tau}, \Empty}
+ {\Env, longvid \vdashAE \key{Var}\ (cvar, args(\tau)), \nxp, \qualtype{p}{\tau}, \Empty}
 \]
 
 \[
 \cfrac
  {\alpha\Leftarrow\corenew{tyvar}        \qquad
   \beta \Leftarrow\corenew{tyvar}        }
- {\Env, \litchar \vdashAE \key{const}\ \alpha, \nxp, \qualtype{\beta}{\overld{\alpha}{\beta}{[\Char8,\Char16,\Char32]}}, \Empty}
+ {\Env, \litchar \vdashAE \key{Constant}\ (\alpha, \litchar), \nxp, \qualtype{\beta}{\overld{\alpha}{\beta}{[\Char8,\Char16,\Char32]}}, \Empty}
 \]
 
 \[
@@ -844,7 +879,7 @@
   \end{array}}
  {\begin{array}{ll}
   \Env, \braced{\vect{lab=exp}} \vdashAE
-    & \braced{\vect{lab=cexp}},                         \\
+    & \key{Record}\ (\vect{lab=cexp}),                      \\
     & \iota_1 \times \cdots \times \iota_n 	                \\
     & \subst{\rho'_n}{\qualtype{\sum_i p_i}{\record{\vect{lab=\tau}}}},  \\
     & \rho'_n                                               \\
@@ -863,7 +898,7 @@
   \end{array}}
  {\begin{array}{ll}
   \Env, (exp_1,\cdots,exp_n) \vdashAE
-    & \braced{1=cexp_1,\cdots,n=cexp_n}, \\
+    & \key{Record}\ (1=cexp_1,\cdots,n=cexp_n), \\
     & \iota_1 \times \cdots \times \iota_n 	     \\
     & \subst{\rho'_n}{\qualtype{\sum_i p_i}{\record{1=\tau_1,\cdots,n=\tau_n}}}, \\
     & \rho'_n \\
@@ -884,7 +919,7 @@
   \end{array}}
  {\begin{array}{ll}
   \Env, [\vect{exp}] \vdashAE
-    & [\vect{cexp}], 	  			\\
+    & \key{List}\ (\vect{cexp}), 	  		\\
     & \iota_1 \times \cdots \times \iota_n 	\\    
     & [\rho'_{n+1}](\qualtype{\sum_i p_i}{\tau_1\ list}),\\
     & \rho'_{n+1}    \\
@@ -918,7 +953,7 @@
  {\Env,dec \vdashD cdec, \VE, \rho_1 \qquad
   [\rho_1]\Env+\VE, exp \vdashE cexp, \wildcard, \qualtype{p}{\tau}, \rho_2}
  {\Env,\key{let}\ dec\ \key{in}\ exp\ \key{end} \vdashAE 
-    \key{let}\ cdec\ \key{in}\ cexp\ \key{end},
+    \key{Let}\ (cdec, cexp),
     \xp,
     \qualtype{p}{\tau},
     \compose{\rho_2}{\rho_1}}
@@ -928,7 +963,7 @@
 \[
 \cfrac
  {\begin{array}{c}
-  v \Leftarrow\corenew{var}                        		                    \qquad
+  cvar \Leftarrow\corenew{var}                        		                    \qquad
   \Env,pat_i \vdashP cpat_i,\qualtype{p_i}{\tau_i},\VE_i     		        \\
   \unifylist{\tau_1}{\tau_n}{\rho_0}  \qquad \rho'_0 = \rho_0   \\  
   \subst{\rho'_0}(\Env+\VE_1),exp_1 \vdashE cexp_1,\wildcard,\qualtype{p_1'}{\tau_1'},\rho_1 
@@ -941,9 +976,9 @@
   \end{array}}
  {\begin{array}{ll}
   \Env, \vect{pat \Rightarrow exp} \vdashM 
-  & \key{lambda}\ v\ (\key{case}\ v\ [\vect{(cpat,cexp)}]), \\
-  & [\compose{\rho_{n+2}}{\rho_{n+1}}](\qualtype{\sum_i (p_i \cup p_i')}{\tau_1\to\tau_1'}), \\
-  & \composeList{\rho_{n+2}}{\rho_1} \\
+  & \lam\ (cvar,\TODO).\ (\key{Case}\ cvar\ [\vect{(cpat,cexp)}]), \\
+  & \subst{\rho'_{n+1}}(\qualtype{\sum_i (p_i \cup p_i')}{\tau_1\to\tau_1'}), \\
+  & \rho'_{n+1} \\
   \end{array}}
 \]
 
