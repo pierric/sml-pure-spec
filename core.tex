@@ -112,7 +112,21 @@
 \maketitle 
 \thispagestyle{fancy}
 
-\section{Declaration in Standard ML}
+\section {Modeling the Environment}
+\[\begin{array}{lcl}
+    \Env & = & (\TE,\SE,\VE)  \\
+    \TE& = & \braced{tycon \mapsto (int, tyfun, \vect{cons})} \\
+    \SE& = & \braced{strid \mapsto \Env}  \\ 
+    \VE& = & \braced{vid   \mapsto (value,\delta, kind)} \\
+    kind & = & \VKV\ |\ \VKC\ |\ \VKE \\
+    cons & = & vid                    \\
+    tyfun& = & \tycon\ |\ \zeta       \\
+    value& = & \vcon\ |\ corevar      \\
+\end{array}\]
+
+\section{Declaration}
+
+\subsection{Declaration in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lclll}
 \prodlhs{dec}
@@ -138,7 +152,7 @@
 \end{array}
 \]}
 
-\section{Declaration in Core-Lang}
+\subsection{Declaration in Core-Lang}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lclll}
 \prodlhs{coredec}
@@ -153,7 +167,7 @@
 \end{array}
 \]}
 
-\section {Elaboration of Declaration}
+\subsection {Elaboration of Declaration}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $ \Env, dec \vdashD coredec, \Env', \rho$ }
@@ -165,7 +179,7 @@
   \Env,\vect{\alpha}, vb \vdash_\VB cdecs_1, \VE_1, \rho_1 \qquad
   [\rho_1]\Env,\vect{\alpha}, recvb \vdash_\VB cdecs_2, \VE_2, \rho_2}
  {\Env, \key{val}\ \vect{tyvar}\ vb\ recvb \vdashD
-    \key{Val}\ (\vect\alpha,\subst{\rho_2}{cdecs_1},cdecs_2), \VE_1+\VE_2, \compose{\rho_2}{\rho_1}}
+    \key{Val}\ (\vect\alpha,cdecs_1,cdecs_2), \VE_1+\VE_2, \compose{\rho_2}{\rho_1}}
 \]
 
 \[
@@ -276,7 +290,7 @@
  {\Env,\key{open}\ \vect{vid} \vdashD \Empty, \sum_i{E_i} ,\Empty}
 \]
 
-\subsection {elaborating value bindings}
+\subsubsection {elaborating value bindings}
 
 \marginpar{\vspace{2.5cm}\scriptsize $\braced{\VE_i}$ may contain free tyvars.}
 \[
@@ -344,7 +358,7 @@
    (cvar, clam), gen_{\subst{\rho''}\sEnv}([\rho''](\qualtype{p_{2}}{\VE})), \rho''}
 \]
 
-\subsection{elaborating type bindings}
+\subsubsection{elaborating type bindings}
 \[
 \cfrac
  {\vect{\alpha}^{(k)} = \vect{tyvar} \qquad
@@ -359,7 +373,7 @@
   \braced{tycon \mapsto (k, \tyfun{\vect\alpha}{\tau},\emptyset)}^\TE}
 \]
 
-\subsection {elaborating datatype bindings}
+\subsubsection {elaborating datatype bindings}
 \[
 \cfrac
  {\vect{\alpha}^{(k)} = \vect{tyvar} \qquad
@@ -391,7 +405,7 @@
   \end{array}}
 \]
 
-\subsection{elaborating function bindings}
+\subsubsection{elaborating function bindings}
 \[
 \cfrac
  {\begin{array}{c}
@@ -434,7 +448,7 @@
   \end{array}}
 \]
 
-\subsection {generalization according to expansiveness}
+\subsubsection {generalization according to expansiveness}
 \[ 
 	gen_E^\iota(\tau) = \left\{\begin{array}{cl}
 						gen_E(\tau)	& \textrm{if}\ \iota = \nxp \textrm{ or } \xpc \\
@@ -442,7 +456,8 @@
 						\end{array}\right.
 \]
 
-\section {Pattern in Standard ML}
+\section {Pattern}
+\subsection {Pattern in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{pat}
@@ -464,7 +479,7 @@
 \end{array}
 \]}
 
-\section {Pattern in Core-Lang}
+\subsection {Pattern in Core-Lang}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{corepat}
@@ -479,7 +494,7 @@
 \]}
 
 
-\section {Elaboration of Pattern}
+\subsection {Elaboration of Pattern}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $ \Env, pat \vdashP corepat, \qualtype{p}{\tau}, \VE $ }
@@ -604,7 +619,8 @@
     vid=cpat, lab:\qualtype{\angled{[\rho]p_2\ \cup} p_1}{\angled{[\rho]}\tau_1}, \VE }
 \]
 
-\section {Expression in Standard ML}
+\section {Expression}
+\subsection {Expression in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{exp}
@@ -635,7 +651,7 @@
 \end{array}
 \]}
 
-\section {Expression in Core-Lang}
+\subsection {Expression in Core-Lang}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcll}
 \prodlhs{coreexp}
@@ -658,7 +674,7 @@
 \end{array}
 \]}
 
-\subsection {derived forms of expression}
+\subsubsection {derived forms of expression}
 \[\begin{array}{ll}
   \key{If}\ (cexp_1, cexp_2, cexp_3) = & \key{Case}\ (cexp_1, \\
                                        & \hspace{7ex}\braced{(true^{bool}, cexp_2), (false^{bool}, cexp_3)})  \\
@@ -673,9 +689,9 @@
                                        & \whereclause{\textrm{$v$ and $u$ are fresh corevars.}}
 \end{array}\]
 
-\section {Elaboration of Expression}
+\subsection {Elaboration of Expression}
 
-\subsection {non-expansiveness}
+\subsubsection {non-expansiveness}
 \begin{minipage}{.6\textwidth}
 \[\begin{array}{cccl}
 \iota & = & \nxp & \comment{non-expansive} \\
@@ -693,7 +709,7 @@
 \end{array}\]
 \end{minipage}
 
-\subsection {elaborating expression}
+\subsubsection {elaborating expression}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{$\Env, exp \vdashE coreexp, \iota, \qualtype{p}{\tau}, \rho$}
@@ -833,7 +849,7 @@
   \end{array}}
 \]
 
-\subsection {elaborating atomic expression}
+\subsubsection {elaborating atomic expression}
 \vspace{-25pt}
 \begin{flushright}\framebox{
 $\begin{array}{ll}
@@ -970,7 +986,7 @@ $\begin{array}{ll}
     \compose{\rho_2}{\rho_1}}
 \]
 
-\subsection {elaborating match}
+\subsubsection {elaborating match}
 \[
 \cfrac
  {\begin{array}{c}
