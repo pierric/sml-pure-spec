@@ -13,7 +13,7 @@
 \cfoot{\thepage}
 \rfoot{\ccby}
 \renewcommand{\headrulewidth}{0.0pt}
-\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.0pt}
 
 \newcommand{\key}[1]{\textrm{\textbf{#1}}}
 \newcommand{\sig}       {\key{sig}}
@@ -98,6 +98,9 @@
 \newcommand{\Empty}{\braced{}}
 \newcommand{\absval}{\star}
 
+\newcommand{\vect}[1]{\overline{#1}}
+
+
 \begin{document}
 
 \title {A pure specification of MLton - Part 3. Module}
@@ -108,16 +111,12 @@
 \section{Modeling the Module}
 \[\begin{array}{lcl}
     \B & = & (\F, \G, \E) \\
-    \F & = & \braced{fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, coredecs)} \\
+    \F & = & \braced{fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, \vect{coredec})} \\
     \G & = & \braced{sigid \mapsto \E^\sT} \\
-    \E & = & (\TE,\SE,\VE)  \\
-    \TE& = & \braced{tycon \mapsto (arity, tyfun, constructors)} \\
-    \SE& = & \braced{strid \mapsto \E}  \\ 
-    \VE& = & \braced{vid   \mapsto (coreval,\delta, kind} \\
-    kind & = & \VKV | \VKC | \VKE \\
 \end{array}\]
 
 \section{Signature}
+\subsection {Signature in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcl}
 sigbind
@@ -133,7 +132,7 @@ spec
     & | & \type\ \overline{\overline{tyvar}\ tycon} \\
     & | & \eqtype\ \overline{\overline{tyvar}\ tycon} \\
     & | & \type\ \overline{\overline{tyvar}\ tycon = type} \\
-    & | & \datatype\ tycon = \datatype longtycon \\
+    & | & \datatype\ tycon = \datatype\ longtycon \\
     & | & \datatype\ \overline{\overline{tyvar}\ tycon = \overline{vid\ \of\ type}} \\
     & | & \exception\ \overline{vid\ \of\ type} \\
     & | & \Structure\ \overline{strid:sigexp} \\
@@ -144,7 +143,7 @@ spec
     & | & spec\ \key{;}\ spec \\
 \end{array}\]}
 
-\section{Elaboration of signature}
+\subsection{Elaboration of signature}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $ \B, sigbind \vdashSigBind \B'$ }
@@ -179,7 +178,7 @@ spec
  {\B, sigexp\ \where\ \overline{\typerfn} \vdashSigexp [\sum_i \varphi_i]\E}
 \]
 
-\subsection{elaborating specification}
+\subsubsection{elaborating specification}
 \[
 \cfrac
  {\B, type_i \vdashT \qualtype{p_i}{\tau_i}}
@@ -265,7 +264,7 @@ spec
  {\B, spec\ \sharing\ \overline{longstrid} \vdashSpec \E'}
 \]
 
-\subsection {type refinement}
+\subsubsection {type refinement}
 \[
 \cfrac
  {tycon \mapsto k, \tycon^\equality \in \E                  \qquad
@@ -285,7 +284,7 @@ spec
     \braced{\tycon \mapsto \tyfun{\overline{\alpha}}{\qualtype{p}{\tau}}}}
 \]
 
-\subsection {elaborating type bindings}
+\subsubsection {elaborating type bindings}
 \[
 \cfrac
  {\B, type \vdashT \tycon^\equality \overline\alpha }
@@ -297,7 +296,7 @@ spec
  {\B,\overline{\alpha}^{(k)}\ tycon = type \vdashSpecTB 
      \braced{tycon \mapsto (k, \tyfun{\overline\alpha}{\tau},\emptyset)}^\TE}
 \]
-\subsection {elaborating datatype bindings}
+\subsubsection {elaborating datatype bindings}
 \[
 \cfrac
  {\overline{\alpha}^{(k)} = tyvars      \qquad
@@ -328,7 +327,7 @@ spec
  }
 \]
 
-\subsection {type sharing}
+\subsubsection {type sharing}
 \[
 \cfrac
  {\begin{array}{c}
@@ -344,7 +343,7 @@ spec
   \end{array}}
  {\B, \E, \overline{longtycon} \vdashShareTycon [\varphi]\E}
 \]
-\subsection {structure sharing}
+\subsubsection {structure sharing}
 \[
 \cfrac
  {}
@@ -368,6 +367,7 @@ spec
 \]
 
 \section{Structure}
+\subsection {Structure in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcl}
 strdec
@@ -395,10 +395,10 @@ fctarg
 	    
 \end{array}\]}
 
-\section{Elaboration of structure}
+\subsection{Elaboration of structure}
 \vspace{-25pt}
 \begin{flushright}
-\framebox{ $ \B, strdec \vdashStrDec coredec, \E, \rho$ }
+\framebox{ $ \B, strdec \vdashStrDec \vect{coredec}, \E, \rho$ }
 \end{flushright}
 \[
 \cfrac
@@ -426,7 +426,7 @@ fctarg
  {\B, \Structure\ strbind \vdashStrDec \sum_i cdecs_i, \sum_i \E_i, \prod_i \rho_i}
 \]
 
-\subsection{elaborating structure expression}
+\subsubsection{elaborating structure expression}
 
 \[
 \cfrac
@@ -482,7 +482,7 @@ fctarg
  {\B, \Let\ dec\ \In\ str\ \End \vdashStr cdecs_1+cdecs_2,\E', \compose{\rho_2}{\rho_1}}
 \]
 
-\subsection{elaborating structure bindings}
+\subsubsection{elaborating structure bindings}
 
 \[
 \cfrac
@@ -516,7 +516,7 @@ fctarg
  {\B, strid:>sigexp = str \vdashStrBind cdecs, \braced{strid \mapsto \E'_2}, \rho}
 \]
 
-\subsection{elaborating functor argument}
+\subsubsection{elaborating functor argument}
 \[
 \cfrac
  {\B, str \vdashStr cdecs,\E,\rho}
@@ -529,7 +529,8 @@ fctarg
  {\B, dec \vdashFctArg cdecs, \E, \rho}
 \]
 
-\section{functor}
+\section{Functor}
+\subsection {Functor in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcl}
 fctbind
@@ -543,7 +544,7 @@ fctparm
 \end{array}
 \]}
 
-\section{Elaboration of functor}
+\subsection{Elaboration of functor}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $ \B, fctbind \vdashFctBind \B', \rho$ }
@@ -560,7 +561,7 @@ fctparm
 	\braced{fctid \mapsto (\fctor{\E_1^{\sT_1}}{\E_2^{\sT_2}}, cdecs)}^\sF, \rho}
 \]
 
-\subsection{elaborating functor parameter}
+\subsubsection{elaborating functor parameter}
 
 \[
 \cfrac
@@ -579,6 +580,7 @@ fctparm
 \]
 
 \section{Program}
+\subsection {Program in Standard ML}
 {\renewcommand{\arraystretch}{1.2}\[
 \begin{array}{lcl}
 prog
@@ -589,16 +591,16 @@ prog
 \end{array}
 \]}
 
-\section{Elaboration of program}
+\subsection{Elaboration of program}
 \vspace{-25pt}
 \begin{flushright}
-\framebox{ $ \B, prog \vdashProg \B', \rho$ }
+\framebox{ $ \B, prog \vdashProg \vect{coredec},\B', \rho$ }
 \end{flushright}
 
 \[
 \frac
- {\B, strdec \vdashStrDec \E,\rho}
- {\B, strdec \vdashProg \E,\rho}
+ {\B, strdec \vdashStrDec cdecs,\E,\rho}
+ {\B, strdec \vdashProg cdecs,\E,\rho}
 \]
 
 \[
@@ -609,7 +611,7 @@ prog
   \cdots \\
   \B \oplus \B_1 \cdots \oplus \B_{n-1}, sigbind_n \vdashSigBind \B_n \\
   \end{array}}
- {\B, \signature\ sigbind_{1..n} \vdashProg \sum_i \B_i, \Empty}
+ {\B, \signature\ sigbind_{1..n} \vdashProg \Empty,\sum_i \B_i, \Empty}
 \]
 
 \[
@@ -620,18 +622,18 @@ prog
   \multicolumn{3}{c}{\cdots} \\
   \B'_{n-1}, fctbind_n \vdashFctBind \B_n,\rho_n & \wildcard & \B''_n= ([\rho_n]\B''_{n-1}) + \B_{n} \\
   \end{array}}
- {\B, functor\ \overline{fctbind} \vdashProg \B''_n, \prod_i\rho_i}
+ {\B, functor\ \overline{fctbind} \vdashProg \Empty,\B''_n, \prod_i\rho_i}
 \]
 
 
 \[
 \cfrac
- {\B               , prog_1 \vdashProg \B_1,\rho_1 \qquad
-  [\rho_1]\B + \B_1, prog_2 \vdashProg \B_2,\rho_2 }
- {\B, prog_1\ \key{;}\ prog_2 \vdashProg [\rho_2]\B_1 + \B_2, \compose{\rho_2}{\rho_1}}
+ {\B               , prog_1 \vdashProg cdecs_1,\B_1,\rho_1 \qquad
+  [\rho_1]\B + \B_1, prog_2 \vdashProg cdecs_2,\B_2,\rho_2 }
+ {\B, prog_1\ \key{;}\ prog_2 \vdashProg cdecs_1+cdecs_2,[\rho_2]\B_1 + \B_2, \compose{\rho_2}{\rho_1}}
 \]
 
-\section{realisation}
+\section{Realisation}
 \vspace{-25pt}
 \begin{flushright}
 \framebox{ $ \matchEnv[\varphi]{\E_1}{\E_2} $ }
