@@ -1,0 +1,776 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[xetex]{hyperref}
+\usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{ccicons}
+\usepackage{multirow}
+\hypersetup{colorlinks=true}
+\pagestyle{fancy}
+
+\fancyhf{}
+\cfoot{\thepage}
+\rfoot{\ccby}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.0pt}
+
+\newcommand{\key}[1]{\textrm{\textbf{#1}}}
+\newcommand{\nbkey}[1]{\textrm{#1}}
+\newcommand{\prodlhs}[1]{\textit{#1}}
+\newcommand{\record}[1]{\{\!\!\shortmid #1 \shortmid\!\!\}}
+\newcommand{\overld}[3]{\largecircle^{#1}_{#2}{#3}}
+\newcommand{\irecrd}[2]{\largesquare^{#1}{#2}}
+\newcommand{\lab}{\nbkey{lab}}
+\newcommand{\rigdvar}[1]{\ddot{#1}}
+\newcommand{\flexvar}[1]{\tilde#1}
+\newcommand{\tyvarsubst}[2]{#1\ \hspace{-0.2ex}:\hspace{1pt}=\ #2}
+\newcommand{\ovldrefine}[2]{#1\ \circ\hspace{-0.3ex}=\ #2}
+\newcommand{\irecextend}[2]{#1\ \smallsquare\hspace{-0.3ex}=\ #2}
+
+\newcommand{\comment}[1]{\textit{\color{olive}#1}}
+\newcommand{\ifclause}[1]{\textit{if}\hspace{1.5ex}#1}
+\newcommand{\whereclause}[1]{\textit{where}\hspace{1.5ex}#1}
+
+\newcommand{\qualtype}[2]{#1 \triangleright #2}
+\newcommand{\unify}[3]{#1\,{\color{brown}{\simeq}}\,#2 \Rightarrow #3}
+\newcommand{\unifyThree}[4]{#1\,{\color{brown}{\simeq}}\,#2\,{\color{brown}{\simeq}}\,#3 \Rightarrow #4}
+\newcommand{\unifylist}[3]{#1\,{\color{brown}{\simeq}}\,\cdots\,{\color{brown}{\simeq}}\,#2 \Rightarrow #3}
+\newcommand{\notunifiable}[2]{#1\,{\color{brown}{\nsimeq}}\,#2}
+\newcommand{\subst}[2]{[#1]\,#2}
+\newcommand{\braced}[1]{\{#1\}}
+\newcommand{\angled}[1]{\,{\color{gray}\langle#1\rangle}\,}
+
+\newcommand{\wildcard}{{\color{gray}\scriptstyle\textbf{*}}}
+\newcommand{\litchar}{\textit{char\_lit}}
+\newcommand{\Char}[1]{\textit{char#1}}
+
+\newcommand{\compose}[2]{#1 \circ #2}
+\newcommand{\composeList}[2]{#1 \circ \cdots \circ #2}
+
+\newcommand{\type}{\tau}
+\newcommand{\scheme}{\delta}
+\newcommand{\tyfun}[2]{\mathbf{\Lambda}{#1}\,.\,{#2}}
+\newcommand{\substitute}{\rho}
+
+\newcommand{\Type} {\textrm{T}}
+\newcommand{\Env}  {\textrm{E}}
+\newcommand{\VE}   {\textrm{VE}}
+\newcommand{\TE}   {\textrm{TE}}
+\newcommand{\SE}   {\textrm{SE}}
+\newcommand{\Dec}  {\textrm{D}}
+\newcommand{\VB}   {\textrm{VB}}
+\newcommand{\TB}   {\textrm{TB}}
+\newcommand{\DB}   {\textrm{DB}}
+\newcommand{\FB}   {\textrm{FB}}
+\newcommand{\FX}   {\textrm{FX}}
+\newcommand{\sType} {\textrm{\tiny T}}
+\newcommand{\sEnv}  {\textrm{\tiny E}}
+\newcommand{\sVE}   {\textrm{\tiny VE}}
+\newcommand{\sTE}   {\textrm{\tiny TE}}
+\newcommand{\sSE}   {\textrm{\tiny SE}}
+\newcommand{\sDec}  {\textrm{\tiny D}}
+\newcommand{\sVB}   {\textrm{\tiny VB}}
+\newcommand{\sTB}   {\textrm{\tiny TB}}
+\newcommand{\sDB}   {\textrm{\tiny DB}}
+\newcommand{\sFB}   {\textrm{\tiny FB}}
+\newcommand{\sFX}   {\textrm{\tiny FX}}
+
+
+\newcommand{\VKE}  {\textrm{EXN}}
+\newcommand{\VKC}  {\textrm{CONS}}
+\newcommand{\VKV}  {\textrm{VAR}}
+
+\newcommand{\Pat}  {\textrm{P}}
+\newcommand{\Exp}  {\textrm{E}}
+\newcommand{\AExp}  {\textrm{AE}}
+\newcommand{\Match}{\textrm{M}}
+
+\newcommand{\lam}  {\mathbf\lambda}
+\newcommand{\tycon}{\mathbb{C}}
+\newcommand{\vcon} {\mathbf{C}}
+\newcommand{\equality}{\mathcal{E}}
+\newcommand{\eqyes}{\equiv}
+\newcommand{\eqnot}{\nequiv}
+\newcommand{\Empty}{\braced{}}
+
+\newcommand{\vdashD}  {\ \vdash_{\textrm{\tiny D}}\  }
+\newcommand{\vdashE}  {\ \vdash_{\textrm{\tiny E}}\  }
+\newcommand{\vdashAE} {\ \vdash_{\textrm{\tiny AE}}\ }
+\newcommand{\vdashP}  {\ \vdash_{\textrm{\tiny P}}\  }
+\newcommand{\vdashT}  {\ \vdash_{\textrm{\tiny T}}\  }
+\newcommand{\vdashM}  {\ \vdash_{\textrm{\tiny M}}\  }
+\newcommand{\vdashFLD}{\ \vdash_\textrm{\tiny FLD}\  }
+
+\newcommand{\xpc}{\mathcal{C}}
+\newcommand{\xp} {\mathcal{E}}
+\newcommand{\nxp}{\mathcal{N}}
+\newcommand{\MaximizeEq}{\key{ME}}
+\newcommand{\corenew}[1]{\textit{new\_#1}}
+
+\newcommand{\vect}[1]{\overline{#1}}
+\newcommand{\optional}[1]{#1?}
+\newcommand{\TODO}{{\color{red}\rule{2ex}{1.5ex}}}
+
+\begin{document}
+
+\title {A pure specification of Simple ML}
+\author{Wu Jiasen $\langle$\href{mailto:wujiasen@yahoo.com}{wujiasen@yahoo.com}$\rangle$}
+\maketitle 
+\thispagestyle{fancy}
+
+\section{Types}
+\subsection{Type in Simple ML}
+\newcommand{\q}     {\textrm{'}}
+\newcommand{\inTE}  {\ \in^{\textrm{\tiny TE}}\  }
+\[\begin{array}{lcll}
+type & = & \q a                                             & \\
+     & | & tycon\ \vect{type}              	            	&\comment{constructor}\\
+\end{array}\]
+
+\subsection{Type in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\type
+     & = & \alpha                                           &\comment{type variable} \\
+     & | & \tycon\ \vect\type              	            	&\comment{constructor}\\
+\alpha 
+     & = & \rigdvar{\alpha}                                 &\comment{rigid type variable}\\
+     & | & \flexvar{\alpha}                                 &\comment{flexible type variable}\\     
+\\     
+\scheme 
+     & = & \forall \vect{\alpha}\,.\,\type
+                                                            &\comment{scheme}\\
+\\
+\substitute
+     & = & \tyvarsubst{\alpha}{\type}                   	&\comment{substitute a tyvar}\\
+\end{array}
+\]}
+
+\subsection {Substitution}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\subst{\rho}{\type} \Rightarrow \type'$ }
+\end{flushright}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcl}
+\subst{\tyvarsubst{\alpha}{\type_1}}{\alpha} 
+    & \Rightarrow & \type_1	 \\
+\subst{\tyvarsubst{\alpha}{\type_1}}{\tycon\ \vect{\type}} 
+    & \Rightarrow & \tycon\ \subst{\tyvarsubst{\alpha}{\type_1}}{\vect{\type}} \\
+\end{array}
+\]}
+
+\subsection {Generalization and Instantiation}
+{\renewcommand{\arraystretch}{1.2}\[\begin{array}{lcll}
+free(\alpha)                  & = & \braced{\alpha}                 &       \\
+free({\tycon\ ts})            & = & free(ts)                   		&       \\
+& & \\
+gen_{env}(\type)              & = & \forall \vect{\alpha}.\type & \whereclause{\vect{\alpha} = free(\type) - free(env)} \\
+inst(\forall \vect{\alpha}.\type)
+                              & = &[\rho]\type & \whereclause{\rho = \braced{\alpha_i \mapsto \flexvar{\beta}_i \ |\ \flexvar{\beta}_i\ \textrm{is a fresh tyvar}}} \\
+\end{array}\]}
+
+\subsection{Instance relationship}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\type \prec \scheme$}
+\end{flushright}
+\[
+	\cfrac{ \unify{t}{inst(s)}{\_}}{t \prec s}
+\]
+
+\subsection{Unification}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $\unify{\type_1}{\type_2}{\rho}$}
+\end{flushright}
+
+\[
+\begin{array}{ccc}
+ \multicolumn{3}{c}{\unify{\alpha}{\alpha}{\braced{}}} \\
+ &                                                                                                          \\
+ {\unify{\flexvar{\alpha}}{\type}{\{\tyvarsubst{\flexvar\alpha}{\type}\}}} & \quad & 
+ {\unify{\type}{\flexvar{\alpha}}{\{\tyvarsubst{\flexvar\alpha}{\type}\}}}                                  \\
+ &                                                                                                          \\
+ {\unify{\rigdvar{\alpha}}{\type}{\perp}} & \quad & 
+ {\unify{\type}{\rigdvar{\alpha}}{\perp}}                                                                   \\
+ &                                                                                                          \\
+ \cfrac
+  {\unify{\vect{\tau}_1}{\vect{\tau}_2}{\rho} \quad \tycon_1 = \tycon_2}
+  {\unify{\tycon_1\ \vect{\tau}_1}{\tycon_2\ \vect{\tau}_2}{\rho}} & \quad &
+ \cfrac
+  {\tycon_1 \ne \tycon_2}
+  {\unify{\tycon_1\ \vect{\tau}_1}{\tycon_2\ \vect{\tau}_2}{\perp}}                                                             \\
+\end{array}
+\]
+
+\subsection {Type function}
+\[\begin{array}{lcl}
+\zeta
+     & = & \Lambda{\vect{\alpha}}\,.\,{\type} \\
+\end{array}\]
+
+\subsubsection {Application of type function}
+\[
+(\Lambda{\vect{\alpha}^{(n)}}\,.\,{\type_0})\ \vect{\type}^{(n)} = \subst{\rho}{\type_0}
+\qquad \whereclause{\rho = \braced{\alpha_i\mapsto\tau_i}}
+\]
+
+\subsection{Elaboration of types}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \Env, type \vdashT \type$ }
+\end{flushright}
+\[
+  \Env, \q a \vdashT \rigdvar{\alpha}
+\]
+\[
+\cfrac
+ {tycon \mapsto (k, \tycon,\wildcard) \inTE \Env    \qquad
+  \Env,type_i\vdash \type_i}
+ {\Env, tycon\ \vect{type}^{(k)} \vdashT \tycon\ \vect{\type}}
+\]
+\[
+\cfrac
+ {tycon \mapsto (k, \zeta,\wildcard) \inTE \Env    \qquad
+  \Env,type_i\vdash \type_i}
+ {\Env, tycon\ \vect{type}^{(k)} \vdashT \zeta\ \vect{\type}}
+\]
+
+\section {Modeling the Environment}
+\[\begin{array}{lcl}
+    \Env & = & (\TE,\VE)  \\
+    \TE& = & \braced{tycon \mapsto (int, tyfun, \vect{cons})} \\
+    \VE& = & \braced{vid   \mapsto (value,\delta, kind)} \\
+    tyfun& = & \tycon\ |\ \zeta       \\
+    cons & = & vid                    \\
+    kind & = & \VKV\ |\ \VKC          \\
+    value& = & \vcon\ |\ corevar      \\
+\end{array}\]
+
+\section{Declaration}
+
+\subsection{Declaration in Standard ML}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lclll}
+\prodlhs{dec}
+     & = & \key{val}  	  & \vect{tyvar} \quad \vect{pat = exp} \quad \vect{\key{rec}\ pat = \key{fn}\ match} &\\
+     & | & \key{fun}      & \vect{tyvar} \quad \vect{\prodlhs{funcbind}} &\\
+     & | & \key{local}    & \prodlhs{$dec_1$} \ \key{in}\ \prodlhs{$dec_2$}     &\\
+     & | & \multicolumn{2}{l}{\prodlhs{$dec_1$}\quad\key{;}\quad \prodlhs{$dec_2$}} &\\
+     \\
+\prodlhs{funcbind}
+	 & = & \multicolumn{2}{l}{\vect{vid \ \vect{pat}:type = exp}} &\\
+\end{array}
+\]}
+
+\subsection{Declaration in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lclll}
+\prodlhs{coredec}
+     & = & \key{Val}  	  & (\vect\alpha,\ \vect{corepat = coreexp}, \vect{corevar = corelambda}) &\\
+     & | & \key{Fun}      & (\vect\alpha,\ \vect{corevar = corelambda}) &\\
+\end{array}
+\]}
+
+\subsection {Elaboration of Declaration}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \Env, dec \vdashD coredec, \Env', \rho$ }
+\end{flushright}
+
+\marginpar{\vspace{1.5cm}\scriptsize $\VE_1,\VE_2$ do not contain free tyvars, no subst is needed.}
+\[
+\cfrac
+ {\begin{array}{c}
+  \vect{\alpha} = \vect{tyvar} 					           \qquad
+  \Env,\vect{\alpha}, vb \vdash_\VB cdecs_1, \VE_1, \rho_1                      \\
+  \subst{\rho_1}{\Env},\vect{\alpha}, recvb \vdash_\VB cdecs_2, \VE_2, \rho_2   \\
+  \end{array}}
+ {\begin{array}{rl}
+  \Env, \key{val}\ \vect{tyvar}\ vb\ recvb \vdashD 
+    & \key{Val}\ (\vect\alpha,\subst{\rho_2}{cdecs_1},cdecs_2), \\
+    & \VE_1+\VE_2, \compose{\rho_2}{\rho_1}                     \\
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \vect{\alpha} = \vect{tyvar}                                                  \qquad
+  \vect{\alpha} \cap free(E) = \emptyset                                        \qquad
+  \vect{cvar}\Leftarrow\corenew{var}^{(n)}                                      \\
+  \Env,fb_i\vdash_{\sFB_1} fn_i, cpats_i, \tau_i,\VE_i     						\\
+  \Env_0 = \Env + \sum_i\braced{fn_i \mapsto (cvar_i, \tau_i, \VKV)} \qquad \rho_0 = \Empty \\
+  \begin{array}{rl}
+  \rho_0,\Env_0, \VE_1, \vect\alpha,    cpats_1, \tau_1, fb_1 & \vdash_{\sFB_2} clam_1, \tau_1', \rho_1, \Env_1    \\
+  \multicolumn{2}{c}{\cdots} \\
+  \rho_{n-1},\Env_n,\VE_n, \vect\alpha, cpats_n, \tau_n, fb_n & \vdash_{\sFB_2} clam_n, \tau_n', \rho_n, \Env_{n+1} \\  
+  \end{array}
+  \end{array}}
+ {\begin{array}{ll}
+  \Env, \key{fun}\ \vect{tyvar}^{(n)}\ \vect{fb} \vdashD
+  & \key{Fun}\ (\vect\alpha,\ \vect{cvar = \subst{\rho'_n}{clam}}), \\
+  & \sum_i\braced{fn_i \mapsto (cvar_i, gen_{\subst{\rho'_n}\sEnv}(\subst{\rho'_n}\tau_i'),\VKV)}, \\
+  & \rho'_n \\
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\Env, dec_1 \vdashD cdec_1, \Env_1, \rho_1    \quad
+  ([\rho_1]\Env) + \Env_1, dec_2,\vdashD cdec_2, \Env_2, \rho_2}
+ {\Env, \key{local}\ dec_1\ \key{in}\ dec_2\ \key{end} \vdashD \subst{\rho_2}{cdec_1}+cdec_2, \Env_2, \compose{\rho_2}{\rho_1}}
+\]
+
+\[
+\cfrac
+ {\Env, dec_1 \vdashD cdec_1, \Env_1, \rho_1    \quad
+  \subst{\rho_1}{\Env} + \Env_1, dec_2,\vdashD cdec_2, \Env_2, \rho_2}
+ {\Env, dec_1\ \key{;}\ dec_2 \vdashD \subst{\rho_2}{cdec_1}+cdec_2, \subst{\rho_2}{\Env_1}+\Env_2, \compose{\rho_2}{\rho_1}}
+\]
+
+\subsubsection {elaborating value bindings}
+
+\marginpar{\vspace{2.5cm}\scriptsize $\braced{\VE_i}$ do not contain free tyvars.}
+\[
+\cfrac
+ {\begin{array}{c}
+   \vect{\alpha} = \vect{tyvar} \qquad \vect{\alpha} \cap free(\Env) = \emptyset \qquad \rho_0 = \Empty \\
+   \rho_0,    \Env,\vect{\alpha}, (pat, exp)_1 \vdash_{\sVB'} 
+        (cpat, cexp)_1, \VE_1, \rho_1  \\
+   \cdots \\
+   \rho_{n-1},\Env,\vect{\alpha}, (pat, exp)_n \vdash_{\sVB'}
+        (cpat, cexp)_n, \VE_n, \rho_n  \\  
+   \braced{\VE_i}\ \nbkey{disjoints}
+  \end{array}}
+ {
+  \Env,\vect{tyvar}, \vect{pat = exp} \vdash_\sVB
+    \vect{\subst{\rho_n}{cpat} = \subst{\rho_n}{cexp}}, \subst{\rho_n}{\sum_i\VE_i}, \rho_n
+ }
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+   \subst{\rho}{\Env},pat \vdashP cpat^{\tau_{1}}, \VE                  \qquad
+   \subst{\rho}{\Env}+\vect{\alpha}, exp \vdashE cexp^{\tau_{2}}, \rho_1\\
+   \unify{\subst{\rho_1}{\tau_{1}}}{\tau_{2}}{\rho_2}                   \qquad 
+   \rho_3=\compose{\rho_2}{\compose{\rho_1}{\rho}}         			      	\\
+  \end{array}}
+ {\begin{array}{ll} 
+  \rho, \Env,\vect{\alpha}, (pat, exp) \vdash_{\sVB'}
+   ([\compose{\rho_2}{\rho_1}]cpat^{\tau_1}, [\rho_2]cexp^{\tau_2}), gen_{\subst{\rho_3}\sEnv}(\subst{\rho_3}{\VE}), \rho_3 \\
+  \end{array}}
+\]
+
+\marginpar{\vspace{3cm}\scriptsize $\braced{\VE_i}$ do not contain free tyvars.}
+\[
+\cfrac
+ {\begin{array}{c}
+   \vect{\alpha} = \vect{tyvar} \qquad \vect{\alpha} \cap free(\Env) = \emptyset \qquad \rho_0 = \Empty \\
+   \rho_0,    \Env,\vect{\alpha}, (pat,match)_1 \vdash_{\sVB'} (cvar, clam)_1, \VE_1, \rho_1 \\
+   \cdots \\
+   \rho_{n-1},\Env,\vect{\alpha}, (pat,match)_n \vdash_{\sVB'} (cvar, clam)_n, \VE_n, \rho_n  \\
+   \braced{\VE_i}\ \nbkey{disjoints}
+  \end{array}}
+ {\Env,\vect{tyvar}, \key{rec}\ \vect{pat = \key{fn}\ match} \vdash_\sVB
+    \vect{cvar = \subst{\rho_n}{clam}}, \sum_i\VE_i, \rho_n}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+   \subst{\rho}{\Env},pat \vdashP \key{Var}^{\tau_1}\ cvar, \VE                     \qquad
+   \subst{\rho}{\Env}+\VE+\vect{\alpha}, match \vdash_\Match clam, \tau_2, \rho_1  \\
+   \unify{\subst{\rho_1}{\tau_{1}}}{\tau_{2}}{\rho_2}                               \qquad 
+   \rho_3=\compose{\rho_2}{\compose{\rho_1}{\rho}}				                          \\ 
+  \end{array}}
+ { \rho,\Env,\vect{\alpha},(pat, match) \vdash_{\sVB'}
+   ([\compose{\rho_2}{\rho_1}]cvar^{\tau_1}, [\rho_2]clam), gen_{\subst{\rho_3}\sEnv}(\subst{\rho_3}{\VE}), \rho_3}
+\]
+
+\subsubsection{elaborating function bindings}
+\[
+\cfrac
+ {\begin{array}{c}
+  fn_1=\cdots=fn_n \qquad arity_1=\cdots=arity_n                        \\
+  \Env,pat_{i,j}  \vdashP  (cpat^\tau)_{i,j},\VE_{i,j}      					  \qquad
+  \Env,type_i \vdash_\sType \tau_i'					                            \\
+  \unifylist{\vect{\tau_1}}{\vect{\tau_n}}{\rho}                        \qquad
+  \unifylist{\tau_1'}{\tau_n'}{\rho'}                                   \\
+  \tau = ([\rho]\tau_{1,1})\to\cdots\to([\rho']\tau_{n,1})\to([\rho']\tau')\\
+  cpats_i = \sum_j \braced{[\rho](cpat^\tau)_{i,j}}       \qquad
+  \VE'_i  = \sum_j (\subst{\rho}{\VE_{i,j}})
+  \end{array}}
+ {\Env, \vect{fn\ \vect{pat}^{(arity)}:type = exp} \vdash_{\sFB_1} 
+  fn_1, arity_1, \vect{(cpats,\VE')},\tau}
+\]
+
+\[
+\cfrac
+ {\begin{array}{lc}
+  \rho'_0 = \rho_0 
+  & (\subst{\rho'_0}    (\Env+\VE_1)) + \vect\alpha, exp_1 \vdashE cexp_1^{\tau_1},\rho_1 \\
+  \rho'_1 = \compose{\rho_1}{\rho'_0} & \multirow{2}{*}{\vdots} \\
+  \multirow{2}{*}{\qquad\vdots}  &  \\
+  & (\subst{\rho'_{n-1}}(\Env+\VE_n)) + \vect\alpha, exp_n \vdashE cexp_n^{\tau_n},\rho_n \\
+  \rho'_n = \compose{\rho_n}{\rho'_{n-1}}
+  & \unifylist{\subst{\rho'_n}{\tau_0}}{\subst{\rho'_n}{\tau_n}}{\rho_{n+1}} \\ 
+  \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n}
+  & \\
+  \multicolumn{2}{c}{\qquad \vect{cvar} \Leftarrow \vect{\corenew{var}}^{(k)} \qquad \vect{arg} = args(\subst{\rho'_{n+1}}{\tau})} \\
+  \end{array}
+ }
+ {\begin{array}{l}
+  \rho_0,\Env,\VE,\vect\alpha,\vect{cpats}^{(n)},\tau\to\tau_0,\vect{fn\ \wildcard = exp}^{(n)} \\
+  \hspace{20ex}\vdash_{\sFB_2} \lam\ cvar_1^{arg_1}.      \\
+  \hspace{25ex}\hspace{2ex}\lam\ \cdots                   \\
+  \hspace{25ex}\hspace{4ex}\lam\ cvar_n^{arg_n}.          \\
+  \hspace{25ex}\hspace{6ex}\key{CasePar}					        \\
+  \hspace{25ex}\hspace{8ex}(\vect{cvar^{arg}},\vect{([\rho'_{n+1}]cpats, [\rho'_{n+1}]cexp^\tau)}),\\
+  \hspace{25ex}\subst{\rho'_{n+1}}{\tau\to\tau_0},                  \\
+  \hspace{25ex}\rho'_{n+1}                                          \\
+  \end{array}}
+\]
+
+\section {Pattern}
+\subsection {Pattern in Standard ML}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{pat}
+    & = & longvid                                                                   &\\        
+    & | & longvid \ \prodlhs{pat}                                                   &\\
+    & | & \prodlhs{pat}\ \key{:}\ \prodlhs{type}                                    &\\
+    & | & \prodlhs{vid}\ \angled{\key{:}\ \prodlhs{type}}\ \key{as}\ \prodlhs{pat}  &\\
+    & | & \_                                                                        &\\
+    & | & (\prodlhs{pat})                                                           &\\
+\end{array}
+\]}
+
+\subsection {Pattern in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{corepat}
+    & = & \multicolumn{2}{l}{corepatnode^\tau}                                    \\
+\prodlhs{corepatnode}
+    & = & \key{Var}         & \prodlhs{corevar}                                   \\        
+    & | & \key{As}          & (\prodlhs{corevar},\prodlhs{corepat})  				      \\
+    & | & \key{Constructor} & (\vcon,\optional{corepat})					                \\
+    & | & \key{Constant}	& const\_literal										                    \\
+    & | & \_                                                                      \\
+\end{array}
+\]}
+
+
+\subsection {Elaboration of Pattern}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{ $ \Env, pat \vdashP corepat, \VE $ }
+\end{flushright}
+
+\[
+\cfrac
+ {\tau \Leftarrow \corenew{tyvar}}
+ {\quad\Env, \_ \vdashP \_ ^ \tau, \Empty\quad}
+\]
+
+\[
+\cfrac
+ {\Env,\ \, pat\ \vdashP cpat^\tau,\VE}
+ {\Env,(pat) \vdashP cpat^\tau,\VE}
+\]
+
+\[
+\cfrac
+ {\Env,pat \vdashP cpat^{\tau_1},\VE_1    \qquad
+  \Env, type \vdashT \tau_2             \qquad
+  \unify{\tau_1}{\tau_2}{\rho_2}}
+ {\Env, pat\ \key{:}\ type \vdashP [\rho_2]cpat^{\tau_1}, [\rho_2]\VE}
+\]
+
+\[
+\cfrac
+ {\tau \Leftarrow \corenew{tyvar}   \qquad
+  cvar \Leftarrow \corenew{var}}
+ {\Env, x \vdashP \key{Var}^\tau\ cvar, \braced{x \mapsto (cvar, \tau, \VKV)}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env,type \vdashT \tau_1              \qquad
+  \Env,pat \vdashP cpat^{\tau_2}, \VE     \\
+  cvar \Leftarrow \corenew{var}         \qquad  
+  \unify{\tau_1}{\tau_2}{\rho}          \\
+  \end{array}}
+ {\begin{array}{ll}
+   \Env, x\ \key{:}\ type\ \key{as}\ pat \vdashP 
+    & [\rho]\key{As}^{\tau_1}\ (cvar, cpat^{\tau_2}), \\
+    & \braced{x \mapsto (cvar, [\rho]\tau_1, \VKV)} + [\rho]\VE
+   \end{array}}
+\]
+
+\[
+\cfrac
+ {\alpha \Leftarrow \corenew{tyvar} \qquad
+  \beta  \Leftarrow \corenew{tyvar}}
+ {\Env, \litchar \vdashP 
+    \key{Constant}^{\Char{8}}\ \litchar, \Empty}
+\]
+
+\[
+\cfrac
+ {longvid \mapsto (\vcon, \delta, \VKC) \in^\VE \Env \qquad
+  \tau = inst(\delta)    \qquad
+  \notunifiable{\tau}{\wildcard \to \wildcard} }
+ {\Env, longvid \vdashP \key{Constructor}^{\tau}\ \vcon, \Empty}
+\]
+
+\[
+\cfrac
+ {\begin{array}{l}
+  longvid \mapsto (\vcon, \delta, \VKC) \in^\VE \Env     \qquad
+  \tau_1\to\tau_2 = inst(\delta)                         \\
+  \Env,pat \vdashP cpat^{\tau_3},\VE                     \qquad
+  \unify{\tau_1}{\tau_3}{\rho}                           \\
+  \end{array}}
+ {\Env, longvid\ pat \vdashP [\rho]\key{Constructor}^{\tau_2}\ (\vcon, cpat^{\tau_3}), [\rho]\VE}
+\]
+
+\section {Expression}
+\subsection {Expression in Standard ML}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{exp}
+    & = & \prodlhs{exp}\ \key{orelse}\ \prodlhs{exp}                                &\\
+    & | & \prodlhs{exp}\ \key{andalso}\ \prodlhs{exp}                               &\\
+    & | & \prodlhs{exp}\ \key{:}\ \prodlhs{type}                                    &\\
+    & | & \key{fn}\ \prodlhs{match}                                                 &\\
+    & | & \key{case}\ \prodlhs{exp}\ \key{of}\ \prodlhs{match}                      &\\
+    & | & \key{if}\ \prodlhs{exp}\ \key{then}\ \prodlhs{exp}\ \key{else}\ \prodlhs{key} &\\
+    & | & \prodlhs{atexp}_1\ \cdots\ \prodlhs{atexp}_n                              &\\
+\prodlhs{atexp}
+    & = & longvid                                                                   &\\
+    & | & ()                                                                        &\\
+    & | & (\prodlhs{exp})                                                           &\\
+    & | & \prodlhs{exp}\ \key{;}\ \prodlhs{exp}                                     &\\
+    & | & \key{let}\ \prodlhs{dec}\ \key{in}\ \prodlhs{exp}\ \key{end}              &\\
+\prodlhs{match}
+    & = & \prodlhs{pat}_1\ \key{$\Rightarrow$}\ \prodlhs{exp}_1\ \shortmid\ \cdots\ \shortmid\ \prodlhs{pat}_n\ \key{$\Rightarrow$}\ \prodlhs{exp}_n & \\
+\end{array}
+\]}
+
+\subsection {Expression in Core-Lang}
+{\renewcommand{\arraystretch}{1.2}\[
+\begin{array}{lcll}
+\prodlhs{coreexp}
+	& = & \multicolumn{2}{l}{coreexpnode^\tau}				    \\
+\prodlhs{coreexpnode}
+    & = & \key{App}     & (coreexp, coreexp)						\\
+    & | & \key{Case}    & (coreexp, \vect{(corepat,coreexp)})   	\\
+    & | & \key{CasePar} & (\vect{coreexp}, \vect{(\vect{corepat},coreexp)}) \\
+    & | & \key{Constructor}& \vcon		                	\\
+    & | & \key{Constant}	 & const\_literal        			\\
+    & | & \key{Var}  		   & corevar     		    \\ 
+    & | & \key{Lambda}  	 & corelambda						\\ 
+    & | & \key{Let}			   & (\vect{coredec}, coreexp)			\\
+    & | & \multicolumn{2}{l}{coreexp\ \key{;}\ coreexp}			\\
+\prodlhs{corelambda}
+	& = & \multicolumn{2}{l}{\lam\ corevar^\tau.\ coreexp}      \\
+\end{array}
+\]}
+
+\subsubsection {derived forms of expression}
+\[\begin{array}{ll}
+  \key{If}\ (cexp_1, cexp_2^\tau, cexp_3^\tau) = & \key{Case}^\tau\ (cexp_1, \\
+                                       & \hspace{7ex}\braced{(true^{bool}, cexp_2^\tau), (false^{bool}, cexp_3^\tau)})  \\
+\key{Andalso}\ (cexp_1, cexp_2)\     = & \key{If}^{bool}\ (cexp_1, cexp_2, false^{bool}) \\
+\key{Orelse} \ (cexp_1, cexp_2)\     = & \key{If}^{bool}\ (cexp_1, true^{bool}, exp_2)   \\
+\end{array}\]
+
+\subsection {Elaboration of Expression}
+
+\subsubsection {elaborating expression}
+\vspace{-25pt}
+\begin{flushright}
+\framebox{$\Env, exp \vdashE coreexp, \rho$}
+\end{flushright}
+
+\[
+\cfrac
+ {\Env, exp \vdashE cexp^{\tau_1},\rho_1 \qquad
+  \Env,type \vdashT \tau_2               \qquad
+  \unify{\tau_1}{\tau_2}{\rho_2}}
+ {\Env, exp\ \key{:}\ type \vdashE
+     \subst{\rho_2}{cexp^{\tau_1}},
+     [\rho_2]\tau_1,
+     \compose{\rho_2}{\rho_1}}
+\]
+
+\[
+\cfrac
+ {\Env,match \vdashM clam,\tau_1\to\tau_2,\rho_1}
+ {\Env, \key{fn}\ match \vdashE \key{Lambda}^{\tau_1\to\tau_2}\ clam, \rho_1}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env,exp \vdashE cexp^{\tau_1}, \rho_1    \\
+  \subst{\rho_1}\Env,match \vdashM clam, \tau_2\to\tau_3,\rho_2        \\
+  \unify{\subst{\rho_2}\tau_1}{\tau_2}{\rho_3}                                            \\
+  \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}
+  \end{array}}
+ {\begin{array}{ll}
+  \Env,\key{case}\ exp\ \key{of}\ match \vdashE 
+   & \subst{\rho}{\key{App}^{\tau_3}\ (\key{Lambda}^{\tau_2\to\tau_3}\ clam, cexp^{\tau_1})},  \\
+   & [\rho]\tau_3, \\
+   & \rho \\
+   \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env,aexp_1 \vdashAE cexp_1^{\tau_1},\rho_1             		\qquad
+  \subst{\rho_1}\Env,aexp_2 \vdashAE cexp_2^{\tau_2}, \rho_2    	\\
+  \tau_3 \Leftarrow \corenew{tyvar}                               \qquad
+  \unify{\subst{\rho_2}{\tau_1}}{\tau_2\to\tau_3}{\rho_3} 		  \qquad
+  \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}               \\
+  \end{array}}
+ {\Env,aexp_1\ aexp_2 \vdashE
+    \subst{\rho}{\key{App}^{\tau_3}\ (cexp_1^{\tau_1}, cexp_2^{\tau_2})},
+    \subst{\rho}{\tau_3},
+    \rho}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env, exp_1        \vdashE cexp_1^{\tau_1},\rho_1               \qquad
+  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2^{\tau_2},\rho_2   		  \\
+  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3} \qquad  \qquad
+  \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}               \\
+  \end{array}}
+ {\begin{array}{ll}
+  \Env, exp_1\ \key{andalso}\ exp_2 \vdashE 
+    & \key{Andalso}^{bool}\ ([\rho]cexp_1^{\tau_1}, [\rho]cexp_2^{\tau_2}),   \\
+    & bool,          							\\
+    & \rho\\
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env, exp_1        \vdashE cexp_1^{\tau_1},\rho_1               \qquad
+  \subst{\rho_1}\Env,exp_2 \vdashE cexp_2^{\tau_2},\rho_2         \\
+  \unifyThree{\subst{\rho_2}\tau_1}{\tau_2}{bool}{\rho_3}         \qquad
+  \rho = \compose{\rho_3}{\compose{\rho_2}{\rho_1}}               \\
+  \end{array} }
+ {\begin{array}{ll}
+  \Env, exp_1\ \key{orelse}\ exp_2 \vdashE
+     & \key{Orelse}^{bool}\ ([\rho]cexp_1^{\tau_1}, [\rho]cexp_2^{\tau_2}),   \\
+     & bool,              						 \\
+     & \rho
+  \end{array}}
+\]
+
+\[
+\cfrac
+ {\begin{array}{c}
+  \Env,exp_1 \vdashE cexp_1^{\tau_1}, \rho_1                             \\
+  \subst{\rho_1}\Env, exp_2 \vdashE cexp_2^{\tau_2}, \rho_2              \qquad
+  {[\compose{\rho_2}{\rho_1}]\Env,exp_3 \vdashE cexp_3^{\tau_3}, \rho_3} \\
+  \unify{(\subst{\compose{\rho_3}{\rho_2}}\tau_1,\subst{\rho_3}\tau_2)}{(bool,\tau_3)}{\rho_4}     \qquad
+  \rho = \compose{\rho_4}{\compose{\rho_3}{\compose{\rho_2}{\rho_1}}}                              \\
+  \end{array}}
+ {\begin{array}{ll}
+    \Env, \key{if}\ exp_1\ \key{then}\ exp_2\ \key{else}\ exp_3 \vdashE 
+    & [\rho]\key{If}^{\tau_3}\ (cexp_1^{\tau_1}, cexp_2^{\tau_2}, cexp_3^{\tau_3}),                \\
+    & [\rho]\tau_2,                  										      \\
+    & \rho  																	  \\
+   \end{array}}
+\]
+
+\subsubsection {elaborating atomic expression}
+\vspace{-25pt}
+\begin{flushright}\framebox{
+$\begin{array}{ll}
+\Env, atexp \vdashAE\hspace{-2ex}
+    & coreexp^\tau, \rho  				\\
+\end{array}$
+}\end{flushright}
+\[
+\cfrac
+ {
+  longvid \mapsto (\vcon, \delta, \VKC) \in^\VE \Env \qquad 
+  \tau \Leftarrow inst(\delta) \\
+ }
+ {\Env, longvid \vdashAE \key{Constructor}^{\tau}\ \vcon, \Empty}
+\]
+
+\[
+\cfrac
+ {longvid \mapsto (cvar, \delta, \VKV) \in^\VE \Env \qquad
+  \tau \Leftarrow inst(\delta)
+  }
+ {\Env, longvid \vdashAE \key{Var}^{\tau}\ cvar, \Empty}
+\]
+
+\[
+\cfrac
+ {}
+ {\Env, \litchar \vdashAE \key{Constant}^\Char8\ \litchar, \Empty}
+\]
+
+\[
+\cfrac
+ {}
+ {\Env, () \vdashAE ()^{unit}, \Empty}
+\]
+
+\[
+\cfrac
+ {\Env,exp_1 \vdashE cexp_1^{\tau_1},\rho_1 \qquad 
+  [\rho_1]\Env,exp_2 \vdashE cexp_2^{\tau_2},\rho_2}
+ {\Env, exp_1\ \key{;}\ exp_2 \vdashAE 
+    ([\rho_2](cexp_1^{\tau_1})\ \key{;}\ cexp_2^{\tau_2})^{\tau_2}, \compose{\rho_2}{\rho_1}}
+\]
+
+\[
+\cfrac
+ {\Env,dec \vdashD cdec, \VE, \rho_1 \qquad
+  [\rho_1]\Env+\VE, exp \vdashE cexp^\tau, \rho_2}
+ {\Env,\key{let}\ dec\ \key{in}\ exp\ \key{end} \vdashAE 
+    \key{Let}^{\tau}\ ([\rho_2]cdec, cexp^\tau),
+    \compose{\rho_2}{\rho_1}}
+\]
+
+\subsubsection {elaborating match}
+\[
+\cfrac
+ {\begin{array}{c}
+  cvar \Leftarrow\corenew{var}                        		                    \qquad
+  \Env,pat_i \vdashP cpat_i^{\tau_i},\VE_i     		        					\\
+  \unifylist{\tau_1}{\tau_n}{\rho_0}  \qquad \rho'_0 = \rho_0   				\\  
+  \subst{\rho'_0}    (\Env+\VE_1),exp_1 \vdashE cexp_1^{\tau_1'},\rho_1 
+    \qquad \rho'_1 = \compose{\rho_1}{\rho'_0} \\
+  \cdots \\
+  \subst{\rho'_{n-1}}(\Env+\VE_n),exp_n \vdashE cexp_n^{\tau_n'},\rho_n 
+    \qquad \rho'_n = \compose{\rho_n}{\rho'_{n-1}} \\
+  \unifylist{\subst{\rho'_n}\tau_1'}{\subst{\rho'_n}\tau_n'}{\rho_{n+1}}
+    \qquad \rho'_{n+1} = \compose{\rho_{n+1}}{\rho'_n}
+  \end{array}}
+ {\begin{array}{ll}
+  \Env, \vect{pat \Rightarrow exp} \vdashM 
+  & \subst{\rho'_{n+1}}{\lam\ cvar^{\tau_1}.\ \key{Case}\ (\ \key{Var}^{\tau_1}\ cvar  \\
+  &                                          \hspace{23ex},\ \vect{(cpat,cexp)}\ )},  \\
+  & \subst{\rho'_{n+1}}(\tau_1\to\tau_1'),       \\
+  & \rho'_{n+1} \\
+  \end{array}}
+\]
+
+
+\end{document}
