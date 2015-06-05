@@ -1,3 +1,4 @@
+%!TEX program = xelatex
 \documentclass[11pt,a4paper]{article}
 \usepackage[xetex]{hyperref}
 \usepackage{mathtools,latexsym,amsfonts,amssymb,MnSymbol}
@@ -346,7 +347,7 @@ inst(\forall \vect{\alpha}.\type)
   \end{array}}
  {
   \Env,\vect{tyvar}, \vect{pat = exp} \vdash_\sVB
-    \vect{\subst{\rho_n}{cpat} = \subst{\rho_n}{cexp}}, \subst{\rho_n}{\sum_i\VE_i}, \rho_n
+    \vect{\subst{\rho_n}{cpat} = \subst{\rho_n}{cexp}}, \sum_i\VE_i, \rho_n
  }
 \]
 
@@ -736,7 +737,7 @@ $\begin{array}{ll}
  {\Env,exp_1 \vdashE cexp_1^{\tau_1},\rho_1 \qquad 
   [\rho_1]\Env,exp_2 \vdashE cexp_2^{\tau_2},\rho_2}
  {\Env, exp_1\ \key{;}\ exp_2 \vdashAE 
-    ([\rho_2](cexp_1^{\tau_1})\ \key{;}\ cexp_2^{\tau_2})^{\tau_2}, \compose{\rho_2}{\rho_1}}
+    ([\rho_2]cexp_1^{\tau_1}\ \key{;}\ cexp_2^{\tau_2})^{\tau_2}, \compose{\rho_2}{\rho_1}}
 \]
 
 \[
