@@ -190,9 +190,15 @@
 
 \[
 \cfrac
- {(longtycon \mapsto (k, \tycon^\equality, cons)) \in^\sTE E }
- {\Env, \key{datatype}\ tycon = \key{datatype}\ longtycon \vdashD 
-    \Empty, \braced{tycon \mapsto (k, \tycon^\equality, cons)}^\sTE , \Empty}
+ {longtycon \mapsto (k, \tycon^\equality, cons) \in^\sTE E \qquad
+  cons_i \mapsto (value,\delta,\VKC)_i \in ^\sVE E}
+ {\begin{array}{ll}
+  \Env, \key{datatype}\ tycon = \key{datatype}\ longtycon \vdashD 
+    & \Empty,    \\
+    & \braced{tycon \mapsto (k, \tycon^\equality, cons)}^\sTE \ \oplus\\
+    & \hspace{1em} \sum_i\braced{cons_i \mapsto (value,\delta,\VKC)_i}^\sVE,        \\
+    & \Empty      \\
+  \end{array}}
 \]
 
 \[
